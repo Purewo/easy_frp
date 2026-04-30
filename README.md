@@ -13,6 +13,7 @@ Frontend work for the current direct-port UI should use [docs/local-client-api.m
 
 ```powershell
 go test ./cmd/... ./internal/...
+go vet ./cmd/... ./internal/...
 go build -o bin\frp-panel.exe .\cmd\frp-panel
 ```
 
@@ -23,6 +24,8 @@ go build -o bin\frp-panel.exe .\cmd\frp-panel
 ```
 
 ## Run Windows local client backend
+
+Use `.env.example` as the list of local environment variables. Keep real tokens in your shell or local `.env`; `.env` files are ignored by git.
 
 ```powershell
 $env:FRP_PANEL_FRPS_TOKEN='<frps auth token>'
