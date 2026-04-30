@@ -3,11 +3,14 @@ package control
 import "time"
 
 type Data struct {
+	Config       ServerConfig           `json:"config"`
 	Groups       map[string]Group       `json:"groups"`
 	Devices      map[string]Device      `json:"devices"`
 	Nodes        map[string]Node        `json:"nodes"`
 	Exposures    map[string]Exposure    `json:"exposures"`
 	AccessRoutes map[string]AccessRoute `json:"accessRoutes"`
+	Rooms        map[string]Room        `json:"rooms"`
+	RoomDevices  map[string]RoomDevice  `json:"roomDevices"`
 }
 
 func NormalizeData(data *Data) {
@@ -26,6 +29,17 @@ func NormalizeData(data *Data) {
 	if data.AccessRoutes == nil {
 		data.AccessRoutes = map[string]AccessRoute{}
 	}
+	if data.Rooms == nil {
+		data.Rooms = map[string]Room{}
+	}
+	if data.RoomDevices == nil {
+		data.RoomDevices = map[string]RoomDevice{}
+	}
+}
+
+type ServerConfig struct {
+	FrpsAddr string `json:"frpsAddr"`
+	FrpsPort int    `json:"frpsPort"`
 }
 
 type Group struct {
@@ -91,6 +105,51 @@ type AccessRoute struct {
 	CreatedAt        time.Time `json:"createdAt"`
 }
 
+type Room struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	ServerName   string    `json:"serverName"`
+	CodeHash     string    `json:"codeHash,omitempty"`
+	HostDeviceID string    `json:"hostDeviceId"`
+	FrpsAddr     string    `json:"frpsAddr"`
+	FrpsPort     int       `json:"frpsPort"`
+	Enabled      bool      `json:"enabled"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type RoomView struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	ServerName   string    `json:"serverName"`
+	HostDeviceID string    `json:"hostDeviceId"`
+	FrpsAddr     string    `json:"frpsAddr"`
+	FrpsPort     int       `json:"frpsPort"`
+	Enabled      bool      `json:"enabled"`
+	MemberCount  int       `json:"memberCount"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type RoomDevice struct {
+	ID         string    `json:"id"`
+	RoomID     string    `json:"roomId"`
+	Name       string    `json:"name"`
+	Role       string    `json:"role"`
+	TokenHash  string    `json:"tokenHash,omitempty"`
+	CreatedAt  time.Time `json:"createdAt"`
+	LastSeenAt time.Time `json:"lastSeenAt"`
+}
+
+type RoomDeviceView struct {
+	ID         string    `json:"id"`
+	RoomID     string    `json:"roomId"`
+	Name       string    `json:"name"`
+	Role       string    `json:"role"`
+	CreatedAt  time.Time `json:"createdAt"`
+	LastSeenAt time.Time `json:"lastSeenAt"`
+}
+
 type DeviceAuth struct {
 	GroupID     string `json:"groupId"`
 	DeviceID    string `json:"deviceId"`
@@ -149,6 +208,33 @@ type CreateAccessRouteRequest struct {
 	BindAddr         string `json:"bindAddr"`
 	BindPort         int    `json:"bindPort"`
 	FallbackBindPort int    `json:"fallbackBindPort"`
+}
+
+type CreateRoomRequest struct {
+	Name       string `json:"name"`
+	DeviceName string `json:"deviceName"`
+}
+
+type CreateRoomResponse struct {
+	Room        RoomView       `json:"room"`
+	RoomCode    string         `json:"roomCode"`
+	Device      RoomDeviceView `json:"device"`
+	DeviceToken string         `json:"deviceToken"`
+}
+
+type JoinRoomRequest struct {
+	RoomCode   string `json:"roomCode"`
+	DeviceName string `json:"deviceName"`
+}
+
+type JoinRoomResponse struct {
+	Room        RoomView       `json:"room"`
+	Device      RoomDeviceView `json:"device"`
+	DeviceToken string         `json:"deviceToken"`
+}
+
+type UpdateRoomRequest struct {
+	Enabled *bool `json:"enabled"`
 }
 
 type PluginDecision struct {

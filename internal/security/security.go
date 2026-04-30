@@ -71,6 +71,13 @@ func DeriveSecretKey(groupID, password string) string {
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
 
+func DeriveRoomSecretKey(roomID, roomSecret string) string {
+	mac := hmac.New(sha256.New, []byte(roomSecret))
+	mac.Write([]byte("frp-ui-backend:room-secret-key:"))
+	mac.Write([]byte(roomID))
+	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}
+
 func RequireToken(token, encodedHash string) error {
 	if token == "" || encodedHash == "" {
 		return errors.New("missing device token")

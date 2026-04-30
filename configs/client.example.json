@@ -1,6 +1,6 @@
 {
   "server": {
-    "baseURL": "http://127.0.0.1:8080",
+    "baseURL": "http://149.118.158.112:18080",
     "frpsHost": "127.0.0.1",
     "frpsPort": 7000
   },

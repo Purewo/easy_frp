@@ -16,15 +16,18 @@ type ProcessManager struct {
 	mu        sync.Mutex
 	processes map[string]*managedProcess
 	logPath   string
+	detached  bool
 }
 
 type managedProcess struct {
 	cmd        *exec.Cmd
+	pid        int
 	frpcPath   string
 	configPath string
 	logPath    string
 	restartKey string
 	lastErr    string
+	detached   bool
 	exited     bool
 	done       chan struct{}
 }
@@ -37,11 +40,23 @@ type runtimeFrpcConfig struct {
 	Raw        string
 }
 
-func NewProcessManager(logPath string) *ProcessManager {
-	return &ProcessManager{
+type ProcessManagerOption func(*ProcessManager)
+
+func WithDetachedProcesses() ProcessManagerOption {
+	return func(pm *ProcessManager) {
+		pm.detached = true
+	}
+}
+
+func NewProcessManager(logPath string, options ...ProcessManagerOption) *ProcessManager {
+	pm := &ProcessManager{
 		processes: map[string]*managedProcess{},
 		logPath:   logPath,
 	}
+	for _, option := range options {
+		option(pm)
+	}
+	return pm
 }
 
 func (pm *ProcessManager) Start(ctx context.Context, frpcPath, configPath string) error {
@@ -77,19 +92,33 @@ func (pm *ProcessManager) startKey(ctx context.Context, key, frpcPath, configPat
 	cmd := exec.Command(frpcPath, "-c", configPath)
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
+	if pm.detached {
+		configureDetachedCommand(cmd)
+	}
 	if err := cmd.Start(); err != nil {
 		_ = logFile.Close()
 		return err
 	}
 	proc := &managedProcess{
 		cmd:        cmd,
+		pid:        cmd.Process.Pid,
 		frpcPath:   frpcPath,
 		configPath: configPath,
 		logPath:    logPath,
 		restartKey: restartKey,
+		detached:   pm.detached,
 		done:       make(chan struct{}),
 	}
 	pm.processes[key] = proc
+	if pm.detached {
+		if err := cmd.Process.Release(); err != nil {
+			delete(pm.processes, key)
+			_ = logFile.Close()
+			return err
+		}
+		_ = logFile.Close()
+		return nil
+	}
 	go func() {
 		err := cmd.Wait()
 		_ = logFile.Close()
@@ -291,12 +320,34 @@ func (pm *ProcessManager) LogsFor(configs []runtimeFrpcConfig) string {
 	return b.String()
 }
 
+func (pm *ProcessManager) StopAll() {
+	pm.mu.Lock()
+	keys := make([]string, 0, len(pm.processes))
+	for key := range pm.processes {
+		keys = append(keys, key)
+	}
+	pm.mu.Unlock()
+	sort.Strings(keys)
+	for _, key := range keys {
+		pm.stopKey(key)
+	}
+}
+
 func (pm *ProcessManager) stopKey(key string) {
 	pm.mu.Lock()
 	proc := pm.processes[key]
 	delete(pm.processes, key)
 	pm.mu.Unlock()
 	if proc == nil || proc.cmd == nil || proc.cmd.Process == nil {
+		return
+	}
+	if proc.detached {
+		if proc.pid != 0 {
+			if process, err := os.FindProcess(proc.pid); err == nil {
+				_ = process.Kill()
+				_ = process.Release()
+			}
+		}
 		return
 	}
 	if runningLocked(proc) {
@@ -309,6 +360,22 @@ func (pm *ProcessManager) stopKey(key string) {
 }
 
 func runningLocked(proc *managedProcess) bool {
+	if proc != nil && proc.detached {
+		if proc.exited || proc.pid == 0 {
+			if proc.lastErr == "" {
+				proc.lastErr = "process exited"
+			}
+			return false
+		}
+		if !processExists(proc.pid) {
+			proc.exited = true
+			if proc.lastErr == "" {
+				proc.lastErr = "process exited"
+			}
+			return false
+		}
+		return true
+	}
 	return proc != nil && !proc.exited && proc.cmd != nil && proc.cmd.Process != nil && proc.cmd.ProcessState == nil
 }
 
@@ -319,7 +386,6 @@ func statusForProcess(nodeID, configPath, logPath string, proc *managedProcess) 
 		LogPath:    logPath,
 	}
 	if proc != nil {
-		status.LastError = proc.lastErr
 		if status.ConfigPath == "" {
 			status.ConfigPath = proc.configPath
 		}
@@ -328,8 +394,12 @@ func statusForProcess(nodeID, configPath, logPath string, proc *managedProcess) 
 		}
 		if runningLocked(proc) {
 			status.Running = true
-			status.PID = proc.cmd.Process.Pid
+			status.PID = proc.pid
+			if status.PID == 0 && proc.cmd != nil && proc.cmd.Process != nil {
+				status.PID = proc.cmd.Process.Pid
+			}
 		}
+		status.LastError = proc.lastErr
 	}
 	return status
 }

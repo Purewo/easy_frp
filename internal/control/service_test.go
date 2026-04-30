@@ -85,3 +85,98 @@ func TestControlServicePublicExposureAndPlugin(t *testing.T) {
 		t.Fatalf("expected query-op plugin login to pass, got %#v", decision)
 	}
 }
+
+func TestControlServiceRoomCreateJoinAndPlugin(t *testing.T) {
+	svc, err := OpenService(filepath.Join(t.TempDir(), "server.json"), WithFrpsEndpoint("frps.example.com", 7000))
+	if err != nil {
+		t.Fatal(err)
+	}
+	created, err := svc.CreateRoom(CreateRoomRequest{Name: "private api", DeviceName: "host"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created.RoomCode == "" || created.Room.FrpsAddr != "frps.example.com" || created.Device.Role != "host" {
+		t.Fatalf("unexpected created room: %#v", created)
+	}
+	joined, err := svc.JoinRoom(JoinRoomRequest{RoomCode: created.RoomCode, DeviceName: "visitor"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if joined.Room.ID != created.Room.ID || joined.Device.Role != "visitor" {
+		t.Fatalf("unexpected joined room: %#v", joined)
+	}
+
+	loginRaw, _ := json.Marshal(map[string]any{
+		"op": "Login",
+		"content": map[string]any{
+			"metadatas": map[string]string{
+				"room_id":           created.Room.ID,
+				"room_device_id":    created.Device.ID,
+				"room_device_token": created.DeviceToken,
+				"room_role":         "host",
+			},
+		},
+	})
+	decision := svc.PluginDecision(loginRaw, "")
+	if decision.Reject {
+		t.Fatalf("expected room login to pass, got %#v", decision)
+	}
+
+	proxyRaw, _ := json.Marshal(map[string]any{
+		"op": "NewProxy",
+		"content": map[string]any{
+			"proxy_name": created.Room.ServerName,
+			"proxy_type": "xtcp",
+			"metadatas": map[string]string{
+				"room_id":           created.Room.ID,
+				"room_device_id":    created.Device.ID,
+				"room_device_token": created.DeviceToken,
+				"room_role":         "host",
+			},
+		},
+	})
+	decision = svc.PluginDecision(proxyRaw, "")
+	if decision.Reject {
+		t.Fatalf("expected room proxy to pass, got %#v", decision)
+	}
+
+	stcpProxyRaw, _ := json.Marshal(map[string]any{
+		"op": "NewProxy",
+		"content": map[string]any{
+			"proxy_name": created.Room.ServerName,
+			"proxy_type": "stcp",
+			"metadatas": map[string]string{
+				"room_id":           created.Room.ID,
+				"room_device_id":    created.Device.ID,
+				"room_device_token": created.DeviceToken,
+				"room_role":         "host",
+			},
+		},
+	})
+	decision = svc.PluginDecision(stcpProxyRaw, "")
+	if decision.Reject {
+		t.Fatalf("expected room stcp proxy to pass, got %#v", decision)
+	}
+
+	badVisitorProxyRaw, _ := json.Marshal(map[string]any{
+		"op": "NewProxy",
+		"content": map[string]any{
+			"proxy_name": created.Room.ServerName,
+			"proxy_type": "xtcp",
+			"metadatas": map[string]string{
+				"room_id":           created.Room.ID,
+				"room_device_id":    joined.Device.ID,
+				"room_device_token": joined.DeviceToken,
+				"room_role":         "visitor",
+			},
+		},
+	})
+	decision = svc.PluginDecision(badVisitorProxyRaw, "")
+	if !decision.Reject {
+		t.Fatalf("expected visitor NewProxy to be rejected")
+	}
+
+	if _, err := svc.JoinRoom(JoinRoomRequest{RoomCode: created.Room.ID + ".wrong", DeviceName: "bad"}); err == nil {
+		t.Fatal("expected bad room code to fail")
+	}
+}

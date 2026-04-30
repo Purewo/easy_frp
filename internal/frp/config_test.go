@@ -10,16 +10,17 @@ import (
 
 func TestRenderClientConfig(t *testing.T) {
 	cfg := ClientConfig{
-		ServerAddr:    "frps.example.com",
-		ServerPort:    7000,
-		AuthToken:     "server-token",
-		AdminAddr:     "127.0.0.1",
-		AdminPort:     7400,
-		AdminUser:     "admin",
-		AdminPassword: "admin-pass",
-		GroupID:       "group1",
-		DeviceID:      "dev1",
-		DeviceToken:   "dev-token",
+		ServerAddr:        "frps.example.com",
+		ServerPort:        7000,
+		NatHoleStunServer: "stun.example.com:3478",
+		AuthToken:         "server-token",
+		AdminAddr:         "127.0.0.1",
+		AdminPort:         7400,
+		AdminUser:         "admin",
+		AdminPassword:     "admin-pass",
+		GroupID:           "group1",
+		DeviceID:          "dev1",
+		DeviceToken:       "dev-token",
 		Proxies: []Proxy{{
 			Name:       "public.exp1",
 			Type:       "tcp",
@@ -44,6 +45,7 @@ func TestRenderClientConfig(t *testing.T) {
 	got := RenderClientConfig(cfg)
 	for _, want := range []string{
 		`serverAddr = "frps.example.com"`,
+		`natHoleStunServer = "stun.example.com:3478"`,
 		`remotePort = 18080`,
 		`[proxies.metadatas]`,
 		`exposure_id = "exp1"`,

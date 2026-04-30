@@ -7,20 +7,21 @@ import (
 )
 
 type ClientConfig struct {
-	ServerAddr    string
-	ServerPort    int
-	AuthMethod    string
-	AuthToken     string
-	AdminAddr     string
-	AdminPort     int
-	AdminUser     string
-	AdminPassword string
-	GroupID       string
-	DeviceID      string
-	DeviceToken   string
-	Metadatas     map[string]string
-	Proxies       []Proxy
-	Visitors      []Visitor
+	ServerAddr        string
+	ServerPort        int
+	NatHoleStunServer string
+	AuthMethod        string
+	AuthToken         string
+	AdminAddr         string
+	AdminPort         int
+	AdminUser         string
+	AdminPassword     string
+	GroupID           string
+	DeviceID          string
+	DeviceToken       string
+	Metadatas         map[string]string
+	Proxies           []Proxy
+	Visitors          []Visitor
 }
 
 type Proxy struct {
@@ -48,6 +49,9 @@ func RenderClientConfig(cfg ClientConfig) string {
 	var b strings.Builder
 	writeKV(&b, "serverAddr", cfg.ServerAddr)
 	writeKVInt(&b, "serverPort", cfg.ServerPort)
+	if cfg.NatHoleStunServer != "" {
+		writeKV(&b, "natHoleStunServer", cfg.NatHoleStunServer)
+	}
 	b.WriteString("\n[auth]\n")
 	writeKV(&b, "method", defaultString(cfg.AuthMethod, "token"))
 	writeKV(&b, "token", cfg.AuthToken)

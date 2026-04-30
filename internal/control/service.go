@@ -19,12 +19,42 @@ type Service struct {
 	now   func() time.Time
 }
 
-func OpenService(path string) (*Service, error) {
+type ServiceOption func(*serviceOptions)
+
+type serviceOptions struct {
+	frpsAddr string
+	frpsPort int
+}
+
+func WithFrpsEndpoint(addr string, port int) ServiceOption {
+	return func(opts *serviceOptions) {
+		opts.frpsAddr = strings.TrimSpace(addr)
+		opts.frpsPort = port
+	}
+}
+
+func OpenService(path string, options ...ServiceOption) (*Service, error) {
+	opts := serviceOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
 	store, err := storage.OpenJSONFile(path, Data{}, NormalizeData)
 	if err != nil {
 		return nil, err
 	}
-	return &Service{store: store, now: time.Now}, nil
+	svc := &Service{store: store, now: time.Now}
+	if opts.frpsAddr != "" || opts.frpsPort != 0 {
+		err = store.Update(func(data *Data) error {
+			if opts.frpsAddr != "" {
+				data.Config.FrpsAddr = opts.frpsAddr
+			}
+			if opts.frpsPort != 0 {
+				data.Config.FrpsPort = opts.frpsPort
+			}
+			return nil
+		})
+	}
+	return svc, err
 }
 
 func (s *Service) CreateGroup(req CreateGroupRequest) (GroupView, error) {
@@ -359,6 +389,216 @@ func (s *Service) CreateAccessRoute(req CreateAccessRouteRequest) (AccessRoute, 
 	return route, err
 }
 
+func (s *Service) ListRooms() ([]RoomView, error) {
+	out := []RoomView{}
+	err := s.store.View(func(data Data) error {
+		rooms := make([]Room, 0, len(data.Rooms))
+		for _, room := range data.Rooms {
+			rooms = append(rooms, room)
+		}
+		sort.Slice(rooms, func(i, j int) bool { return rooms[i].CreatedAt.Before(rooms[j].CreatedAt) })
+		for _, room := range rooms {
+			out = append(out, toRoomView(room, data.RoomDevices))
+		}
+		return nil
+	})
+	return out, err
+}
+
+func (s *Service) CreateRoom(req CreateRoomRequest) (CreateRoomResponse, error) {
+	if err := validate.Name(req.Name); err != nil {
+		return CreateRoomResponse{}, httpx.BadRequest(err.Error())
+	}
+	if err := validate.Name(req.DeviceName); err != nil {
+		return CreateRoomResponse{}, httpx.BadRequest(err.Error())
+	}
+
+	roomSecret, err := security.NewToken()
+	if err != nil {
+		return CreateRoomResponse{}, err
+	}
+	deviceToken, err := security.NewToken()
+	if err != nil {
+		return CreateRoomResponse{}, err
+	}
+	now := s.now().UTC()
+	roomID := newID("room")
+	roomCode := roomID + "." + roomSecret
+	device := RoomDevice{
+		ID:         newID("rdev"),
+		RoomID:     roomID,
+		Name:       strings.TrimSpace(req.DeviceName),
+		Role:       "host",
+		TokenHash:  security.HashToken(deviceToken),
+		CreatedAt:  now,
+		LastSeenAt: now,
+	}
+	room := Room{
+		ID:           roomID,
+		Name:         strings.TrimSpace(req.Name),
+		ServerName:   "room." + roomID + ".xtcp",
+		CodeHash:     security.HashToken(roomCode),
+		HostDeviceID: device.ID,
+		Enabled:      true,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+	err = s.store.Update(func(data *Data) error {
+		frpsAddr := strings.TrimSpace(data.Config.FrpsAddr)
+		if frpsAddr == "" {
+			return httpx.BadRequest("frps endpoint is not configured")
+		}
+		frpsPort := data.Config.FrpsPort
+		if frpsPort == 0 {
+			frpsPort = 7000
+		}
+		if err := validate.Port(frpsPort); err != nil {
+			return httpx.BadRequest("frps " + err.Error())
+		}
+		room.FrpsAddr = frpsAddr
+		room.FrpsPort = frpsPort
+		data.Rooms[room.ID] = room
+		data.RoomDevices[device.ID] = device
+		return nil
+	})
+	if err != nil {
+		return CreateRoomResponse{}, err
+	}
+	return CreateRoomResponse{
+		Room:        toRoomView(room, map[string]RoomDevice{device.ID: device}),
+		RoomCode:    roomCode,
+		Device:      toRoomDeviceView(device),
+		DeviceToken: deviceToken,
+	}, nil
+}
+
+func (s *Service) JoinRoom(req JoinRoomRequest) (JoinRoomResponse, error) {
+	roomID, _, err := ParseRoomCode(req.RoomCode)
+	if err != nil {
+		return JoinRoomResponse{}, httpx.BadRequest(err.Error())
+	}
+	if err := validate.Name(req.DeviceName); err != nil {
+		return JoinRoomResponse{}, httpx.BadRequest(err.Error())
+	}
+	deviceToken, err := security.NewToken()
+	if err != nil {
+		return JoinRoomResponse{}, err
+	}
+	now := s.now().UTC()
+	device := RoomDevice{
+		ID:         newID("rdev"),
+		RoomID:     roomID,
+		Name:       strings.TrimSpace(req.DeviceName),
+		Role:       "visitor",
+		TokenHash:  security.HashToken(deviceToken),
+		CreatedAt:  now,
+		LastSeenAt: now,
+	}
+	var room Room
+	var memberCount int
+	err = s.store.Update(func(data *Data) error {
+		var ok bool
+		room, ok = data.Rooms[roomID]
+		if !ok {
+			return httpx.NotFound("room not found")
+		}
+		if !room.Enabled {
+			return httpx.BadRequest("room is disabled")
+		}
+		if security.HashToken(strings.TrimSpace(req.RoomCode)) != room.CodeHash {
+			return httpx.Unauthorized("invalid room code")
+		}
+		data.RoomDevices[device.ID] = device
+		memberCount = roomMemberCount(room.ID, data.RoomDevices)
+		return nil
+	})
+	if err != nil {
+		return JoinRoomResponse{}, err
+	}
+	view := toRoomView(room, nil)
+	view.MemberCount = memberCount
+	return JoinRoomResponse{Room: view, Device: toRoomDeviceView(device), DeviceToken: deviceToken}, nil
+}
+
+func (s *Service) GetRoom(roomID string) (RoomView, error) {
+	var view RoomView
+	err := s.store.View(func(data Data) error {
+		room, ok := data.Rooms[roomID]
+		if !ok {
+			return httpx.NotFound("room not found")
+		}
+		view = toRoomView(room, data.RoomDevices)
+		return nil
+	})
+	return view, err
+}
+
+func (s *Service) UpdateRoom(roomID string, auth RoomDeviceAuth, req UpdateRoomRequest) (RoomView, error) {
+	if req.Enabled == nil {
+		return RoomView{}, httpx.BadRequest("enabled is required")
+	}
+	if err := s.validateRoomDevice(auth, "host"); err != nil {
+		return RoomView{}, err
+	}
+	var room Room
+	var devices map[string]RoomDevice
+	err := s.store.Update(func(data *Data) error {
+		var ok bool
+		room, ok = data.Rooms[roomID]
+		if !ok {
+			return httpx.NotFound("room not found")
+		}
+		if room.ID != auth.RoomID {
+			return httpx.Unauthorized("room auth mismatch")
+		}
+		room.Enabled = *req.Enabled
+		room.UpdatedAt = s.now().UTC()
+		data.Rooms[room.ID] = room
+		devices = data.RoomDevices
+		return nil
+	})
+	if err != nil {
+		return RoomView{}, err
+	}
+	return toRoomView(room, devices), nil
+}
+
+func (s *Service) DeleteRoom(roomID string, auth RoomDeviceAuth) error {
+	if err := s.validateRoomDevice(auth, "host"); err != nil {
+		return err
+	}
+	return s.store.Update(func(data *Data) error {
+		room, ok := data.Rooms[roomID]
+		if !ok {
+			return httpx.NotFound("room not found")
+		}
+		if room.ID != auth.RoomID {
+			return httpx.Unauthorized("room auth mismatch")
+		}
+		delete(data.Rooms, roomID)
+		for deviceID, device := range data.RoomDevices {
+			if device.RoomID == roomID {
+				delete(data.RoomDevices, deviceID)
+			}
+		}
+		return nil
+	})
+}
+
+type RoomDeviceAuth struct {
+	RoomID      string
+	DeviceID    string
+	DeviceToken string
+}
+
+func ParseRoomCode(roomCode string) (roomID string, roomSecret string, err error) {
+	parts := strings.SplitN(strings.TrimSpace(roomCode), ".", 2)
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", fmt.Errorf("roomCode must be <roomId>.<secret>")
+	}
+	return parts[0], parts[1], nil
+}
+
 func (s *Service) validateDevice(auth DeviceAuth) error {
 	if auth.GroupID == "" || auth.DeviceID == "" || auth.DeviceToken == "" {
 		return httpx.Unauthorized("missing device auth")
@@ -377,12 +617,76 @@ func (s *Service) validateDevice(auth DeviceAuth) error {
 	})
 }
 
+func (s *Service) validateRoomDevice(auth RoomDeviceAuth, requiredRole string) error {
+	if auth.RoomID == "" || auth.DeviceID == "" || auth.DeviceToken == "" {
+		return httpx.Unauthorized("missing room device auth")
+	}
+	return s.store.Update(func(data *Data) error {
+		room, ok := data.Rooms[auth.RoomID]
+		if !ok {
+			return httpx.Unauthorized("unknown room")
+		}
+		if !room.Enabled && requiredRole != "host" {
+			return httpx.Unauthorized("room disabled")
+		}
+		device, ok := data.RoomDevices[auth.DeviceID]
+		if !ok || device.RoomID != auth.RoomID {
+			return httpx.Unauthorized("unknown room device")
+		}
+		if requiredRole != "" && device.Role != requiredRole {
+			return httpx.Unauthorized("room role mismatch")
+		}
+		if err := security.RequireToken(auth.DeviceToken, device.TokenHash); err != nil {
+			return httpx.Unauthorized(err.Error())
+		}
+		device.LastSeenAt = s.now().UTC()
+		data.RoomDevices[auth.DeviceID] = device
+		return nil
+	})
+}
+
 func (s *Service) Snapshot() (Data, error) {
 	return s.store.Snapshot()
 }
 
 func toGroupView(group Group) GroupView {
 	return GroupView{ID: group.ID, CreatedAt: group.CreatedAt}
+}
+
+func toRoomView(room Room, devices map[string]RoomDevice) RoomView {
+	return RoomView{
+		ID:           room.ID,
+		Name:         room.Name,
+		ServerName:   room.ServerName,
+		HostDeviceID: room.HostDeviceID,
+		FrpsAddr:     room.FrpsAddr,
+		FrpsPort:     room.FrpsPort,
+		Enabled:      room.Enabled,
+		MemberCount:  roomMemberCount(room.ID, devices),
+		CreatedAt:    room.CreatedAt,
+		UpdatedAt:    room.UpdatedAt,
+	}
+}
+
+func toRoomDeviceView(device RoomDevice) RoomDeviceView {
+	return RoomDeviceView{
+		ID:         device.ID,
+		RoomID:     device.RoomID,
+		Name:       device.Name,
+		Role:       device.Role,
+		CreatedAt:  device.CreatedAt,
+		LastSeenAt: device.LastSeenAt,
+	}
+}
+
+func roomMemberCount(roomID string, devices map[string]RoomDevice) int {
+	count := 0
+	for _, device := range devices {
+		if device.RoomID == roomID {
+			count++
+		}
+	}
+	return count
 }
 
 func portAllowed(port int, ranges []PortRange) bool {

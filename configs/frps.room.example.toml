@@ -1,0 +1,7 @@
+bindPort = 17000
+
+[[httpPlugins]]
+name = "frp-panel-rooms"
+addr = "127.0.0.1:8080"
+path = "/internal/frps/plugin"
+ops = ["Login", "NewProxy", "NewUserConn"]

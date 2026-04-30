@@ -1,7 +1,13 @@
 {
+  "config": {
+    "frpsAddr": "rooms.frps.example.com",
+    "frpsPort": 17000
+  },
   "groups": {},
   "devices": {},
   "nodes": {},
   "exposures": {},
-  "accessRoutes": {}
+  "accessRoutes": {},
+  "rooms": {},
+  "roomDevices": {}
 }

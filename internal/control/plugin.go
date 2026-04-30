@@ -66,6 +66,13 @@ func (s *Service) PluginDecision(raw json.RawMessage, fallbackOp string) PluginD
 }
 
 func (s *Service) pluginLogin(content pluginContent) PluginDecision {
+	if content.Metadatas["room_id"] != "" {
+		auth := roomAuthFromPlugin(content)
+		if err := s.validateRoomDevice(auth, ""); err != nil {
+			return reject("%s", err.Error())
+		}
+		return PluginDecision{Reject: false, Unchange: true}
+	}
 	groupID := content.Metadatas["group_id"]
 	deviceID := content.Metadatas["device_id"]
 	deviceToken := content.Metadatas["device_token"]
@@ -87,6 +94,9 @@ func (s *Service) pluginLogin(content pluginContent) PluginDecision {
 }
 
 func (s *Service) pluginNewProxy(content pluginContent) PluginDecision {
+	if content.Metadatas["room_id"] != "" {
+		return s.pluginRoomNewProxy(content)
+	}
 	exposureID := content.Metadatas["exposure_id"]
 	groupID := content.Metadatas["group_id"]
 	deviceID := content.Metadatas["device_id"]
@@ -122,6 +132,13 @@ func (s *Service) pluginNewProxy(content pluginContent) PluginDecision {
 }
 
 func (s *Service) pluginNewUserConn(content pluginContent) PluginDecision {
+	if content.Metadatas["room_id"] != "" {
+		auth := roomAuthFromPlugin(content)
+		if err := s.validateRoomDevice(auth, ""); err != nil {
+			return reject("%s", err.Error())
+		}
+		return PluginDecision{Reject: false, Unchange: true}
+	}
 	exposureID := content.Metadatas["exposure_id"]
 	if exposureID == "" {
 		return PluginDecision{Reject: false, Unchange: true}
@@ -138,6 +155,39 @@ func (s *Service) pluginNewUserConn(content pluginContent) PluginDecision {
 		return reject("exposure disabled")
 	}
 	return PluginDecision{Reject: false, Unchange: true}
+}
+
+func (s *Service) pluginRoomNewProxy(content pluginContent) PluginDecision {
+	auth := roomAuthFromPlugin(content)
+	if err := s.validateRoomDevice(auth, "host"); err != nil {
+		return reject("%s", err.Error())
+	}
+	data, err := s.Snapshot()
+	if err != nil {
+		return reject("%s", err.Error())
+	}
+	room, ok := data.Rooms[auth.RoomID]
+	if !ok {
+		return reject("unknown room")
+	}
+	if !room.Enabled {
+		return reject("room disabled")
+	}
+	if room.ServerName != content.ProxyName {
+		return reject("room serverName mismatch")
+	}
+	if content.ProxyType != "xtcp" && content.ProxyType != "stcp" {
+		return reject("room proxy type must be xtcp or stcp")
+	}
+	return PluginDecision{Reject: false, Unchange: true}
+}
+
+func roomAuthFromPlugin(content pluginContent) RoomDeviceAuth {
+	return RoomDeviceAuth{
+		RoomID:      content.Metadatas["room_id"],
+		DeviceID:    content.Metadatas["room_device_id"],
+		DeviceToken: content.Metadatas["room_device_token"],
+	}
 }
 
 func (c *pluginContent) normalize() {

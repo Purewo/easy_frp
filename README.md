@@ -9,7 +9,7 @@ It contains two HTTP services:
 
 Frontend work for the current direct-port UI should use [docs/local-client-api.md](docs/local-client-api.md) and [openapi/local-client.yaml](openapi/local-client.yaml). The older combined API contract remains in [openapi/openapi.yaml](openapi/openapi.yaml) for legacy control-server flows.
 
-Current release: [v0.1.0](docs/releases/v0.1.0.md). The next development milestone is XTCP support; start from [docs/next-xtcp.md](docs/next-xtcp.md).
+Current release: [v0.2.0](docs/releases/v0.2.0.md). XTCP room mode is documented in [docs/client-server-rooms.md](docs/client-server-rooms.md).
 
 ## Build
 
@@ -22,8 +22,12 @@ go build -o bin\frp-panel.exe .\cmd\frp-panel
 ## Run public control server
 
 ```powershell
-.\bin\frp-panel.exe server --addr :8080 --data .\data\server.json
+.\bin\frp-panel.exe server --addr :8080 --data .\data\server.json --frps-addr rooms.frps.example.com --frps-port 17000
 ```
+
+For XTCP room mode, run this control server on the same server side as `frps`. During the first rollout, keep the existing production frps for direct/public exposure and start a second room-only frps, for example on port `17000` with [configs/frps.room.example.toml](configs/frps.room.example.toml). Point `--frps-addr` and `--frps-port` at that room frps. Merge the two frps processes only after the room protocol and plugin authorization are stable.
+
+The room frps should call the HTTP plugin endpoint below so the control server can authorize room clients by metadata instead of giving users a shared frps token.
 
 ## Run Windows local client backend
 
@@ -31,10 +35,12 @@ Use `.env.example` as the list of local environment variables. Keep real tokens 
 
 ```powershell
 $env:FRP_PANEL_FRPS_TOKEN='<frps auth token>'
-.\bin\frp-panel.exe client --addr 127.0.0.1:7410 --data .\data\client.json --frpc .\frp_0.68.1_windows_amd64\frpc.exe --workdir .\data\frpc --frps-host 149.118.158.112 --frps-port 7000 --web-base-domain ma1.gameuniverse.top
+.\bin\frp-panel.exe client --addr 127.0.0.1:7410 --data .\data\client.json --frpc .\frp_0.68.1_windows_amd64\frpc.exe --workdir .\data\frpc --server http://149.118.158.112:18080 --frps-host 149.118.158.112 --frps-port 7000 --web-base-domain ma1.gameuniverse.top
 ```
 
 The local backend seeds a `default` frps node, writes frpc config under the configured work directory, verifies candidate config with `frpc verify -c <config>`, then starts frpc or uses `frpc reload -c <config>` when port rules change. More frps nodes can be added later through the API, CLI, or UI. In direct-port mode, enabled rules are grouped by `nodeId`; each active node gets its own config file, admin port, frpc process, and log file.
+
+Room mode uses two API surfaces: the remote control server at `http://149.118.158.112:18080` for room records, and the local backend at `http://127.0.0.1:7410` for this machine's room rules and frpc lifecycle. See [docs/client-server-rooms.md](docs/client-server-rooms.md) for the frontend wiring contract.
 
 Direct exposure APIs:
 
@@ -98,7 +104,19 @@ Operate rules by id, name, domain, or subdomain:
 .\bin\frp-panel.exe ctl logs --tail 80
 ```
 
-Use `--json` for machine-readable output and `--api` or `FRP_PANEL_API` when the local backend is not on the default address.
+Use `--json` for machine-readable `ctl` output and `--api` or `FRP_PANEL_API` when the local backend is not on the default address.
+
+XTCP room mode:
+
+```powershell
+.\bin\frp-panel.exe client host private-api --server http://149.118.158.112:18080 --local-port 8080 --frpc .\frp_0.68.1_windows_amd64\frpc.exe --workdir .\data\frpc
+.\bin\frp-panel.exe client join <roomCode> --server http://149.118.158.112:18080 --bind-port 18080 --frpc .\frp_0.68.1_windows_amd64\frpc.exe --workdir .\data\frpc
+.\bin\frp-panel.exe client rooms --data .\data\client.json
+```
+
+The host command prints a one-time high-entropy `roomCode`, starts frpc, and keeps the client process in the foreground. The visitor command uses that code plus its own local bind port. The room code is used locally to derive the XTCP `secretKey`; the control server stores only a hash of the code.
+
+Add `--detach` when the room process should keep running after the CLI exits. Detached mode starts frpc independently, which is important for Windows hosts launched over SSH or Remote Desktop session cleanup.
 
 Create a TCP exposure:
 
@@ -138,6 +156,7 @@ Local example with the downloaded frp package:
 
 ```powershell
 .\frp_0.68.1_windows_amd64\frps.exe -c .\configs\frps.panel.example.toml
+.\frp_0.68.1_windows_amd64\frps.exe -c .\configs\frps.room.example.toml
 ```
 
 The plugin expects frpc metadata fields:
@@ -146,6 +165,10 @@ The plugin expects frpc metadata fields:
 - `device_id`
 - `device_token`
 - `exposure_id` for proxy creation
+- `room_id`
+- `room_device_id`
+- `room_device_token`
+- `room_role` for XTCP room clients
 
 ## frp compatibility check
 

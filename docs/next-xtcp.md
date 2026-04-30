@@ -1,5 +1,16 @@
 # Next Milestone: XTCP
 
+Status: superseded by the implemented room-mode contract in [client-server-rooms.md](client-server-rooms.md) and the [v0.2.0 release notes](releases/v0.2.0.md).
+
+Current direction:
+
+- Do not add local `/v1/xtcp` APIs or `ctl xtcp` commands for room mode.
+- Keep the existing local backend focused on direct/public exposure.
+- Implement XTCP rooms through `frp-panel server` plus foreground `frp-panel client host` and `frp-panel client join` commands.
+- During the first rollout, run a separate room-only frps, for example on port `17000`, and keep the existing production frps for direct/public exposure. Merge later only after room authorization and operations are stable.
+
+The sections below are retained as historical context only; do not implement them as the active plan.
+
 This document is the handoff for the next development round. Do not start by redesigning the current direct-port flow; treat `v0.1.0` as the stable baseline and add XTCP as the next backend capability.
 
 ## Goal

@@ -9,6 +9,8 @@ servers:
 tags:
   - name: client-direct
     description: Direct frpc node and port exposure flow for the frontend
+  - name: client-rooms
+    description: Local XTCP/STCP room rules, process status, and NAT diagnostics
 paths:
   /v1/nodes:
     get:
@@ -187,6 +189,158 @@ paths:
           description: Port rule deleted and applied to frpc
         '404':
           $ref: '#/components/responses/Error'
+  /v1/client/rooms:
+    get:
+      operationId: listLocalRoomRules
+      tags: [client-rooms]
+      responses:
+        '200':
+          description: Local room rules stored by this client backend
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomRuleView'
+  /v1/client/rooms/status:
+    get:
+      operationId: listLocalRoomStatuses
+      tags: [client-rooms]
+      responses:
+        '200':
+          description: Local room rules with their frpc process state
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomRuleStatus'
+  /v1/client/rooms/host:
+    post:
+      operationId: createLocalRoomHost
+      tags: [client-rooms]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomHostRequest'
+      responses:
+        '201':
+          description: Host room created locally and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomRuleView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /v1/client/rooms/join:
+    post:
+      operationId: joinLocalRoom
+      tags: [client-rooms]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRoomRequest'
+      responses:
+        '201':
+          description: Visitor room rule created locally and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomRuleView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /v1/client/rooms/{roomRuleId}:
+    patch:
+      operationId: patchLocalRoomRule
+      tags: [client-rooms]
+      parameters:
+        - $ref: '#/components/parameters/roomRuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchRoomRuleRequest'
+      responses:
+        '200':
+          description: Local room rule state updated and applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomRuleView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+    delete:
+      operationId: deleteLocalRoomRule
+      tags: [client-rooms]
+      parameters:
+        - $ref: '#/components/parameters/roomRuleId'
+      responses:
+        '204':
+          description: Local room rule deleted and frpc reapplied
+        '404':
+          $ref: '#/components/responses/Error'
+  /v1/client/rooms/{roomRuleId}/doctor:
+    post:
+      operationId: doctorLocalRoomRule
+      tags: [client-rooms]
+      parameters:
+        - $ref: '#/components/parameters/roomRuleId'
+      responses:
+        '200':
+          description: Local room diagnostic result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomDoctorResult'
+        '404':
+          $ref: '#/components/responses/Error'
+  /v1/client/network/interfaces:
+    get:
+      operationId: listClientNetworkInterfaces
+      tags: [client-rooms]
+      responses:
+        '200':
+          description: Local IPv4 interfaces for NAT diagnostics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NetworkInterfaceView'
+  /v1/client/xtcp/nathole/discover:
+    post:
+      operationId: discoverClientNatHole
+      tags: [client-rooms]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NatHoleDiscoverRequest'
+      responses:
+        '200':
+          description: frpc nathole discover output. Command-level failures are returned as success=false.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NatHoleDiscoverResult'
+        '400':
+          $ref: '#/components/responses/Error'
   /v1/frpc/status:
     get:
       operationId: directFrpcStatus
@@ -234,6 +388,12 @@ components:
         type: string
     nodeId:
       name: nodeId
+      in: path
+      required: true
+      schema:
+        type: string
+    roomRuleId:
+      name: roomRuleId
       in: path
       required: true
       schema:
@@ -530,6 +690,190 @@ components:
       properties:
         enabled:
           type: boolean
+    RoomRuleView:
+      type: object
+      required: [id, roomId, name, role, tunnelProtocol, serverName, serverAddr, serverPort, deviceId, deviceTokenSet, secretKeySet, enabled, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        roomCode:
+          type: string
+          description: Present only in the create-host response. Treat as secret.
+        name:
+          type: string
+        role:
+          type: string
+          enum: [host, visitor]
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+          default: xtcp
+        natHoleStunServer:
+          type: string
+          description: Optional STUN server for XTCP, for example stun.easyvoip.com:3478.
+        serverName:
+          type: string
+        serverAddr:
+          type: string
+        serverPort:
+          type: integer
+        deviceId:
+          type: string
+        deviceTokenSet:
+          type: boolean
+        secretKeySet:
+          type: boolean
+        localIP:
+          type: string
+        localPort:
+          type: integer
+        bindAddr:
+          type: string
+        bindPort:
+          type: integer
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateRoomHostRequest:
+      type: object
+      required: [name, localPort]
+      properties:
+        name:
+          type: string
+        deviceName:
+          type: string
+        serverBaseURL:
+          type: string
+          description: Optional override for private control-server deployments. Omit it in the normal frontend flow so the local backend uses the built-in remote control server.
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+          default: xtcp
+        natHoleStunServer:
+          type: string
+        localIP:
+          type: string
+          default: 127.0.0.1
+        localPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        enabled:
+          type: boolean
+          default: true
+    JoinRoomRequest:
+      type: object
+      required: [roomCode, bindPort]
+      properties:
+        roomCode:
+          type: string
+        name:
+          type: string
+        deviceName:
+          type: string
+        serverBaseURL:
+          type: string
+          description: Optional override for private control-server deployments. Omit it in the normal frontend flow so the local backend uses the built-in remote control server.
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+          default: xtcp
+        natHoleStunServer:
+          type: string
+        bindAddr:
+          type: string
+          default: 127.0.0.1
+        bindPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        enabled:
+          type: boolean
+          default: true
+    PatchRoomRuleRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+    RoomRuleStatus:
+      type: object
+      required: [rule, process]
+      properties:
+        rule:
+          $ref: '#/components/schemas/RoomRuleView'
+        process:
+          $ref: '#/components/schemas/FrpcNodeStatus'
+    RoomDoctorResult:
+      type: object
+      required: [rule, overall, checks]
+      properties:
+        rule:
+          $ref: '#/components/schemas/RoomRuleView'
+        overall:
+          type: string
+          enum: [pass, warn, fail]
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeDoctorCheck'
+    NatHoleDiscoverRequest:
+      type: object
+      properties:
+        stunServer:
+          type: string
+          description: Optional STUN server, for example stun.easyvoip.com:3478.
+        localAddr:
+          type: string
+          description: Optional local UDP bind address for diagnostics only, for example 10.7.24.208:0.
+    NatHoleDiscoverResult:
+      type: object
+      required: [success, rawOutput]
+      properties:
+        success:
+          type: boolean
+        stunServer:
+          type: string
+        natType:
+          type: string
+        behavior:
+          type: string
+        externalAddresses:
+          type: array
+          items:
+            type: string
+        localAddress:
+          type: string
+        publicNetwork:
+          type: boolean
+        rawOutput:
+          type: string
+        error:
+          type: string
+        durationMs:
+          type: integer
+          format: int64
+    NetworkInterfaceView:
+      type: object
+      required: [name, index, address, loopback, multicast]
+      properties:
+        name:
+          type: string
+        index:
+          type: integer
+        address:
+          type: string
+        loopback:
+          type: boolean
+        multicast:
+          type: boolean
     FrpcStatus:
       type: object
       required: [running, configPath]
@@ -568,4 +912,18 @@ components:
           type: string
           example: .\data\frpc\frpc.log
         lastError:
+          type: string
+        roomRuleId:
+          type: string
+        roomId:
+          type: string
+        roomName:
+          type: string
+        roomRole:
+          type: string
+          enum: [host, visitor]
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+        localEndpoint:
           type: string

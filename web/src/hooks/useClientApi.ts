@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { clientApi } from '../api/client';
+import type { components } from '../api/types';
 
 export type PortProtocol = 'tcp' | 'udp' | 'http';
 
@@ -114,6 +115,17 @@ export type FrpcStatus = {
   }>;
 };
 
+export type TunnelProtocol = 'xtcp' | 'stcp';
+export type ClientRoomRuleView = components['schemas']['ClientRoomRuleView'];
+export type ClientCreateRoomHostRequest = components['schemas']['ClientCreateRoomHostRequest'];
+export type ClientJoinRoomRequest = components['schemas']['ClientJoinRoomRequest'];
+export type ClientPatchRoomRuleRequest = components['schemas']['ClientPatchRoomRuleRequest'];
+export type ClientRoomRuleStatus = components['schemas']['ClientRoomRuleStatus'];
+export type ClientRoomDoctorResult = components['schemas']['ClientRoomDoctorResult'];
+export type NatHoleDiscoverRequest = components['schemas']['NatHoleDiscoverRequest'];
+export type NatHoleDiscoverResult = components['schemas']['NatHoleDiscoverResult'];
+export type NetworkInterfaceView = components['schemas']['NetworkInterfaceView'];
+
 export function getApiErrorMessage(error: unknown, fallback: string) {
   if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { data?: { error?: string; message?: string } } }).response;
@@ -187,6 +199,114 @@ export function usePortRules() {
     queryKey: ['port-rules'],
     queryFn: async () => {
       const res = await clientApi.get('/v1/ports');
+      return res.data;
+    },
+  });
+}
+
+export function useClientRoomRules() {
+  return useQuery<ClientRoomRuleView[]>({
+    queryKey: ['client-room-rules'],
+    queryFn: async () => {
+      const res = await clientApi.get('/v1/client/rooms');
+      return res.data;
+    },
+  });
+}
+
+export function useClientRoomStatuses() {
+  return useQuery<ClientRoomRuleStatus[]>({
+    queryKey: ['client-room-statuses'],
+    queryFn: async () => {
+      const res = await clientApi.get('/v1/client/rooms/status');
+      return res.data;
+    },
+    refetchInterval: 3000,
+  });
+}
+
+export function useCreateClientRoomHost() {
+  const qc = useQueryClient();
+  return useMutation<ClientRoomRuleView, Error, ClientCreateRoomHostRequest>({
+    mutationFn: async (body) => {
+      const res = await clientApi.post('/v1/client/rooms/host', body);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-room-rules'] });
+      qc.invalidateQueries({ queryKey: ['client-room-statuses'] });
+      qc.invalidateQueries({ queryKey: ['frpc-status'] });
+    },
+  });
+}
+
+export function useJoinClientRoom() {
+  const qc = useQueryClient();
+  return useMutation<ClientRoomRuleView, Error, ClientJoinRoomRequest>({
+    mutationFn: async (body) => {
+      const res = await clientApi.post('/v1/client/rooms/join', body);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-room-rules'] });
+      qc.invalidateQueries({ queryKey: ['client-room-statuses'] });
+      qc.invalidateQueries({ queryKey: ['frpc-status'] });
+    },
+  });
+}
+
+export function usePatchClientRoomRule() {
+  const qc = useQueryClient();
+  return useMutation<ClientRoomRuleView, Error, { roomRuleId: string; body: ClientPatchRoomRuleRequest }>({
+    mutationFn: async ({ roomRuleId, body }) => {
+      const res = await clientApi.patch(`/v1/client/rooms/${roomRuleId}`, body);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-room-rules'] });
+      qc.invalidateQueries({ queryKey: ['client-room-statuses'] });
+      qc.invalidateQueries({ queryKey: ['frpc-status'] });
+    },
+  });
+}
+
+export function useDeleteClientRoomRule() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, string>({
+    mutationFn: async (roomRuleId) => {
+      await clientApi.delete(`/v1/client/rooms/${roomRuleId}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-room-rules'] });
+      qc.invalidateQueries({ queryKey: ['client-room-statuses'] });
+      qc.invalidateQueries({ queryKey: ['frpc-status'] });
+    },
+  });
+}
+
+export function useDoctorClientRoomRule() {
+  return useMutation<ClientRoomDoctorResult, Error, string>({
+    mutationFn: async (roomRuleId) => {
+      const res = await clientApi.post(`/v1/client/rooms/${roomRuleId}/doctor`);
+      return res.data;
+    },
+  });
+}
+
+export function useNetworkInterfaces() {
+  return useQuery<NetworkInterfaceView[]>({
+    queryKey: ['client-network-interfaces'],
+    queryFn: async () => {
+      const res = await clientApi.get('/v1/client/network/interfaces');
+      return res.data;
+    },
+  });
+}
+
+export function useDiscoverNatHole() {
+  return useMutation<NatHoleDiscoverResult, Error, NatHoleDiscoverRequest>({
+    mutationFn: async (body) => {
+      const res = await clientApi.post('/v1/client/xtcp/nathole/discover', body);
       return res.data;
     },
   });

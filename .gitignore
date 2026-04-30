@@ -15,5 +15,8 @@ coverage/
 .env
 .env.*
 !.env.example
+ssh-key/
 
 test/runtime/
+test/room-*/
+test/generated-*.ps1

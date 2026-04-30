@@ -41,7 +41,9 @@ type Service struct {
 type ServiceOption func(*serviceOptions)
 
 type serviceOptions struct {
-	defaultNode NodeConfig
+	defaultNode   NodeConfig
+	serverBaseURL string
+	detachedFrpc  bool
 }
 
 var (
@@ -52,6 +54,18 @@ var (
 func WithDefaultNode(node NodeConfig) ServiceOption {
 	return func(opts *serviceOptions) {
 		opts.defaultNode = node
+	}
+}
+
+func WithServerBaseURL(baseURL string) ServiceOption {
+	return func(opts *serviceOptions) {
+		opts.serverBaseURL = strings.TrimRight(strings.TrimSpace(baseURL), "/")
+	}
+}
+
+func WithDetachedFrpcProcesses() ServiceOption {
+	return func(opts *serviceOptions) {
+		opts.detachedFrpc = true
 	}
 }
 
@@ -82,9 +96,13 @@ func OpenService(dataPath, frpcPath, workDir string, options ...ServiceOption) (
 	if err != nil {
 		return nil, err
 	}
+	pmOptions := []ProcessManagerOption{}
+	if opts.detachedFrpc {
+		pmOptions = append(pmOptions, WithDetachedProcesses())
+	}
 	svc := &Service{
 		store:  store,
-		pm:     NewProcessManager(filepath.Join(workDir, "frpc.log")),
+		pm:     NewProcessManager(filepath.Join(workDir, "frpc.log"), pmOptions...),
 		client: &http.Client{Timeout: 10 * time.Second},
 		now:    time.Now,
 	}
@@ -104,6 +122,9 @@ func OpenService(dataPath, frpcPath, workDir string, options ...ServiceOption) (
 				return err
 			}
 			data.Frpc.AdminPassword = token
+		}
+		if opts.serverBaseURL != "" {
+			data.Server.BaseURL = opts.serverBaseURL
 		}
 		svc.ensureDefaultNode(data, opts.defaultNode)
 		return nil
@@ -512,6 +533,423 @@ func (s *Service) DeletePortRule(ctx context.Context, id string) error {
 	return s.applyData(ctx, oldData, newData)
 }
 
+func (s *Service) ListRoomRules() ([]RoomRuleView, error) {
+	data, err := s.store.Snapshot()
+	if err != nil {
+		return nil, err
+	}
+	return sortedRoomRuleViews(data.RoomRules), nil
+}
+
+func (s *Service) ListRoomRuleStatuses() ([]RoomRuleStatus, error) {
+	data, err := s.store.Snapshot()
+	if err != nil {
+		return nil, err
+	}
+	configs, err := s.renderClientConfigs(data)
+	if err != nil {
+		return nil, err
+	}
+	status := s.enrichRoomStatus(data, s.pm.StatusAll(configs))
+	processes := map[string]FrpcNodeStatus{}
+	for _, node := range status.Nodes {
+		if node.RoomRuleID != "" {
+			processes[node.RoomRuleID] = node
+		}
+	}
+	rules := sortedRoomRules(data.RoomRules)
+	out := make([]RoomRuleStatus, 0, len(rules))
+	for _, rule := range rules {
+		process := processes[rule.ID]
+		if process.NodeID == "" {
+			process = roomProcessStatus(rule, FrpcNodeStatus{
+				NodeID:     roomProcessID(rule.ID),
+				ConfigPath: configPathForNode(data, roomProcessID(rule.ID)),
+				LogPath:    logPathForNode(data, roomProcessID(rule.ID)),
+			})
+		}
+		out = append(out, RoomRuleStatus{Rule: toRoomRuleView(rule), Process: process})
+	}
+	return out, nil
+}
+
+func (s *Service) CreateRoomHost(ctx context.Context, req CreateRoomHostRequest) (RoomRuleView, error) {
+	serverBaseURL, err := s.resolveServerBaseURL(req.ServerBaseURL)
+	if err != nil {
+		return RoomRuleView{}, err
+	}
+	if _, err := s.snapshotForRoomMutation(); err != nil {
+		return RoomRuleView{}, err
+	}
+	if err := validateCreateRoomHostRequest(req); err != nil {
+		return RoomRuleView{}, err
+	}
+	deviceName := strings.TrimSpace(req.DeviceName)
+	if deviceName == "" {
+		deviceName = defaultDeviceName()
+	}
+	var created control.CreateRoomResponse
+	if err := s.postJSON(ctx, serverBaseURL, "/v1/rooms", control.CreateRoomRequest{
+		Name:       strings.TrimSpace(req.Name),
+		DeviceName: deviceName,
+	}, &created); err != nil {
+		return RoomRuleView{}, err
+	}
+	_, roomSecret, err := control.ParseRoomCode(created.RoomCode)
+	if err != nil {
+		s.deleteRemoteRoomBestEffort(context.Background(), serverBaseURL, created)
+		return RoomRuleView{}, err
+	}
+	enabled := true
+	if req.Enabled != nil {
+		enabled = *req.Enabled
+	}
+	now := s.now().UTC()
+	rule := RoomRule{
+		ID:                newDirectID("room"),
+		RoomID:            created.Room.ID,
+		Name:              defaultString(strings.TrimSpace(req.Name), created.Room.Name),
+		Role:              RoomRoleHost,
+		TunnelProtocol:    normalizeRoomTunnelProtocol(req.TunnelProtocol),
+		NatHoleStunServer: strings.TrimSpace(req.NatHoleStunServer),
+		ServerName:        created.Room.ServerName,
+		ServerAddr:        created.Room.FrpsAddr,
+		ServerPort:        created.Room.FrpsPort,
+		DeviceID:          created.Device.ID,
+		DeviceToken:       created.DeviceToken,
+		SecretKey:         security.DeriveRoomSecretKey(created.Room.ID, roomSecret),
+		LocalIP:           defaultString(strings.TrimSpace(req.LocalIP), "127.0.0.1"),
+		LocalPort:         req.LocalPort,
+		Enabled:           enabled,
+		CreatedAt:         now,
+		UpdatedAt:         now,
+	}
+	view, err := s.saveRoomRule(ctx, rule)
+	if err != nil {
+		s.deleteRemoteRoomBestEffort(context.Background(), serverBaseURL, created)
+		return RoomRuleView{}, redactError(err, created.RoomCode, created.DeviceToken, rule.DeviceToken, rule.SecretKey)
+	}
+	view.RoomCode = created.RoomCode
+	return view, nil
+}
+
+func (s *Service) JoinRoom(ctx context.Context, req JoinRoomRequest) (RoomRuleView, error) {
+	serverBaseURL, err := s.resolveServerBaseURL(req.ServerBaseURL)
+	if err != nil {
+		return RoomRuleView{}, err
+	}
+	roomID, roomSecret, err := control.ParseRoomCode(req.RoomCode)
+	if err != nil {
+		return RoomRuleView{}, httpx.BadRequest(err.Error())
+	}
+	data, err := s.snapshotForRoomMutation()
+	if err != nil {
+		return RoomRuleView{}, err
+	}
+	if err := validateJoinRoomRequest(data, req); err != nil {
+		return RoomRuleView{}, err
+	}
+	deviceName := strings.TrimSpace(req.DeviceName)
+	if deviceName == "" {
+		deviceName = defaultDeviceName()
+	}
+	var joined control.JoinRoomResponse
+	if err := s.postJSON(ctx, serverBaseURL, "/v1/rooms/join", control.JoinRoomRequest{
+		RoomCode:   strings.TrimSpace(req.RoomCode),
+		DeviceName: deviceName,
+	}, &joined); err != nil {
+		return RoomRuleView{}, err
+	}
+	enabled := true
+	if req.Enabled != nil {
+		enabled = *req.Enabled
+	}
+	name := strings.TrimSpace(req.Name)
+	if name == "" {
+		name = joined.Room.Name + " visitor"
+	}
+	now := s.now().UTC()
+	rule := RoomRule{
+		ID:                newDirectID("room"),
+		RoomID:            roomID,
+		Name:              name,
+		Role:              RoomRoleVisitor,
+		TunnelProtocol:    normalizeRoomTunnelProtocol(req.TunnelProtocol),
+		NatHoleStunServer: strings.TrimSpace(req.NatHoleStunServer),
+		ServerName:        joined.Room.ServerName,
+		ServerAddr:        joined.Room.FrpsAddr,
+		ServerPort:        joined.Room.FrpsPort,
+		DeviceID:          joined.Device.ID,
+		DeviceToken:       joined.DeviceToken,
+		SecretKey:         security.DeriveRoomSecretKey(roomID, roomSecret),
+		BindAddr:          defaultString(strings.TrimSpace(req.BindAddr), "127.0.0.1"),
+		BindPort:          req.BindPort,
+		Enabled:           enabled,
+		CreatedAt:         now,
+		UpdatedAt:         now,
+	}
+	view, err := s.saveRoomRule(ctx, rule)
+	if err != nil {
+		return RoomRuleView{}, redactError(err, req.RoomCode, joined.DeviceToken, rule.DeviceToken, rule.SecretKey)
+	}
+	return view, nil
+}
+
+func (s *Service) PatchRoomRule(ctx context.Context, id string, req PatchRoomRuleRequest) (RoomRuleView, error) {
+	if req.Enabled == nil {
+		return RoomRuleView{}, httpx.BadRequest("enabled is required")
+	}
+	oldData, err := s.store.Snapshot()
+	if err != nil {
+		return RoomRuleView{}, err
+	}
+	rule, ok := oldData.RoomRules[id]
+	if !ok {
+		return RoomRuleView{}, httpx.NotFound("room rule not found")
+	}
+	newData, err := cloneData(oldData)
+	if err != nil {
+		return RoomRuleView{}, err
+	}
+	rule.Enabled = *req.Enabled
+	rule.UpdatedAt = s.now().UTC()
+	newData.RoomRules[id] = rule
+	if err := validateRoomRule(newData, rule); err != nil {
+		return RoomRuleView{}, err
+	}
+	if err := s.applyData(ctx, oldData, newData); err != nil {
+		return RoomRuleView{}, err
+	}
+	return toRoomRuleView(rule), nil
+}
+
+func (s *Service) DeleteRoomRule(ctx context.Context, id string) error {
+	oldData, err := s.store.Snapshot()
+	if err != nil {
+		return err
+	}
+	if _, ok := oldData.RoomRules[id]; !ok {
+		return httpx.NotFound("room rule not found")
+	}
+	newData, err := cloneData(oldData)
+	if err != nil {
+		return err
+	}
+	delete(newData.RoomRules, id)
+	return s.applyData(ctx, oldData, newData)
+}
+
+func (s *Service) DoctorRoomRule(ctx context.Context, id string) (RoomDoctorResult, error) {
+	data, err := s.store.Snapshot()
+	if err != nil {
+		return RoomDoctorResult{}, err
+	}
+	rule, ok := data.RoomRules[id]
+	if !ok {
+		return RoomDoctorResult{}, httpx.NotFound("room rule not found")
+	}
+	var checks []NodeDoctorCheck
+	add := func(check NodeDoctorCheck) { checks = append(checks, check) }
+	start := time.Now()
+	if err := validateRoomRule(data, rule); err != nil {
+		add(NodeDoctorCheck{ID: "room-rule", Name: "房间规则", Status: "fail", Message: err.Error(), DurationMS: elapsedMS(start)})
+		return RoomDoctorResult{Rule: toRoomRuleView(rule), Overall: doctorOverall(checks), Checks: checks}, nil
+	}
+	add(NodeDoctorCheck{ID: "room-rule", Name: "房间规则", Status: "pass", Message: "房间规则配置有效", DurationMS: elapsedMS(start)})
+
+	start = time.Now()
+	address := net.JoinHostPort(rule.ServerAddr, fmt.Sprint(rule.ServerPort))
+	dialCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	dialer := net.Dialer{Timeout: 5 * time.Second}
+	conn, err := dialer.DialContext(dialCtx, "tcp", address)
+	cancel()
+	if err != nil {
+		add(NodeDoctorCheck{ID: "frps-tcp", Name: "frps TCP 连通性", Status: "fail", Message: err.Error(), DurationMS: elapsedMS(start), Details: map[string]string{"address": address}})
+	} else {
+		_ = conn.Close()
+		add(NodeDoctorCheck{ID: "frps-tcp", Name: "frps TCP 连通性", Status: "pass", Message: "可以连接 frps", DurationMS: elapsedMS(start), Details: map[string]string{"address": address}})
+	}
+	if rule.Role == RoomRoleVisitor {
+		start = time.Now()
+		ln, err := net.Listen("tcp", net.JoinHostPort(rule.BindAddr, fmt.Sprint(rule.BindPort)))
+		if err != nil {
+			add(NodeDoctorCheck{ID: "bind-port", Name: "本地绑定端口", Status: "fail", Message: err.Error(), DurationMS: elapsedMS(start)})
+		} else {
+			_ = ln.Close()
+			add(NodeDoctorCheck{ID: "bind-port", Name: "本地绑定端口", Status: "pass", Message: "绑定端口可用", DurationMS: elapsedMS(start)})
+		}
+	}
+	if normalizeRoomTunnelProtocol(rule.TunnelProtocol) == RoomTunnelXTCP {
+		add(s.doctorNatHole(ctx, data, rule))
+	}
+	return RoomDoctorResult{Rule: toRoomRuleView(rule), Overall: doctorOverall(checks), Checks: checks}, nil
+}
+
+func (s *Service) ListNetworkInterfaces() ([]NetworkInterfaceView, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+	out := make([]NetworkInterfaceView, 0)
+	for _, iface := range ifaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			ip, _, err := net.ParseCIDR(addr.String())
+			if err != nil || ip == nil {
+				continue
+			}
+			ip4 := ip.To4()
+			if ip4 == nil {
+				continue
+			}
+			out = append(out, NetworkInterfaceView{
+				Name:      iface.Name,
+				Index:     iface.Index,
+				Address:   ip4.String(),
+				Loopback:  iface.Flags&net.FlagLoopback != 0,
+				Multicast: iface.Flags&net.FlagMulticast != 0,
+			})
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Loopback != out[j].Loopback {
+			return !out[i].Loopback
+		}
+		if out[i].Index == out[j].Index {
+			return out[i].Address < out[j].Address
+		}
+		return out[i].Index < out[j].Index
+	})
+	return out, nil
+}
+
+func (s *Service) DiscoverNatHole(ctx context.Context, req NatHoleDiscoverRequest) (NatHoleDiscoverResult, error) {
+	data, err := s.store.Snapshot()
+	if err != nil {
+		return NatHoleDiscoverResult{}, err
+	}
+	if strings.TrimSpace(data.Frpc.Path) == "" {
+		return NatHoleDiscoverResult{}, httpx.BadRequest("frpc path is empty")
+	}
+	return runNatHoleDiscover(ctx, data.Frpc.Path, req), nil
+}
+
+func (s *Service) doctorNatHole(ctx context.Context, data Data, rule RoomRule) NodeDoctorCheck {
+	start := time.Now()
+	if strings.TrimSpace(data.Frpc.Path) == "" {
+		return NodeDoctorCheck{ID: "xtcp-nathole", Name: "XTCP NAT 探测", Status: "skipped", Message: "frpc path is empty", DurationMS: elapsedMS(start)}
+	}
+	result := runNatHoleDiscover(ctx, data.Frpc.Path, NatHoleDiscoverRequest{StunServer: rule.NatHoleStunServer})
+	details := map[string]string{}
+	if result.StunServer != "" {
+		details["stunServer"] = result.StunServer
+	}
+	if result.NatType != "" {
+		details["natType"] = result.NatType
+	}
+	if result.Behavior != "" {
+		details["behavior"] = result.Behavior
+	}
+	if result.LocalAddress != "" {
+		details["localAddress"] = result.LocalAddress
+	}
+	if len(result.ExternalAddresses) > 0 {
+		details["externalAddresses"] = strings.Join(result.ExternalAddresses, ", ")
+	}
+	if result.Success {
+		message := "STUN 探测成功"
+		if result.NatType != "" || result.Behavior != "" {
+			message = strings.TrimSpace(result.NatType + " " + result.Behavior)
+		}
+		return NodeDoctorCheck{ID: "xtcp-nathole", Name: "XTCP NAT 探测", Status: "pass", Message: message, DurationMS: result.DurationMS, Details: details}
+	}
+	message := result.Error
+	if message == "" {
+		message = "STUN 探测失败"
+	}
+	return NodeDoctorCheck{ID: "xtcp-nathole", Name: "XTCP NAT 探测", Status: "fail", Message: message, DurationMS: result.DurationMS, Details: details}
+}
+
+func runNatHoleDiscover(ctx context.Context, frpcPath string, req NatHoleDiscoverRequest) NatHoleDiscoverResult {
+	start := time.Now()
+	result := NatHoleDiscoverResult{}
+	args := []string{"nathole", "discover"}
+	if stunServer := strings.TrimSpace(req.StunServer); stunServer != "" {
+		result.StunServer = stunServer
+		args = append(args, "--nat-hole-stun-server", stunServer)
+	}
+	if localAddr := strings.TrimSpace(req.LocalAddr); localAddr != "" {
+		args = append(args, "--nat-hole-local-addr", localAddr)
+	}
+	discoverCtx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(discoverCtx, frpcPath, args...)
+	raw, err := cmd.CombinedOutput()
+	result.DurationMS = elapsedMS(start)
+	result.RawOutput = strings.TrimSpace(string(raw))
+	parseNatHoleOutput(&result, result.RawOutput)
+	if err != nil {
+		if discoverCtx.Err() != nil {
+			result.Error = discoverCtx.Err().Error()
+		} else {
+			result.Error = strings.TrimSpace(result.RawOutput)
+			if result.Error == "" {
+				result.Error = err.Error()
+			}
+		}
+		return result
+	}
+	result.Success = true
+	return result
+}
+
+func parseNatHoleOutput(result *NatHoleDiscoverResult, raw string) {
+	for _, line := range strings.Split(raw, "\n") {
+		line = strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(line, "STUN server:"):
+			result.StunServer = strings.TrimSpace(strings.TrimPrefix(line, "STUN server:"))
+		case strings.HasPrefix(line, "Your NAT type is:"):
+			result.NatType = strings.TrimSpace(strings.TrimPrefix(line, "Your NAT type is:"))
+		case strings.HasPrefix(line, "Behavior is:"):
+			result.Behavior = strings.TrimSpace(strings.TrimPrefix(line, "Behavior is:"))
+		case strings.HasPrefix(line, "External address is:"):
+			rawAddrs := strings.TrimSpace(strings.TrimPrefix(line, "External address is:"))
+			rawAddrs = strings.Trim(rawAddrs, "[]")
+			if rawAddrs != "" {
+				result.ExternalAddresses = strings.Fields(rawAddrs)
+			}
+		case strings.HasPrefix(line, "Local address is:"):
+			result.LocalAddress = strings.TrimSpace(strings.TrimPrefix(line, "Local address is:"))
+		case strings.HasPrefix(line, "Public Network:"):
+			v := strings.EqualFold(strings.TrimSpace(strings.TrimPrefix(line, "Public Network:")), "true")
+			result.PublicNetwork = &v
+		}
+	}
+}
+
+func (s *Service) saveRoomRule(ctx context.Context, rule RoomRule) (RoomRuleView, error) {
+	oldData, err := s.store.Snapshot()
+	if err != nil {
+		return RoomRuleView{}, err
+	}
+	newData, err := cloneData(oldData)
+	if err != nil {
+		return RoomRuleView{}, err
+	}
+	if err := validateRoomRule(newData, rule); err != nil {
+		return RoomRuleView{}, err
+	}
+	newData.RoomRules[rule.ID] = rule
+	if err := s.applyData(ctx, oldData, newData); err != nil {
+		return RoomRuleView{}, err
+	}
+	return toRoomRuleView(rule), nil
+}
+
 func (s *Service) JoinGroup(ctx context.Context, req ClientJoinGroupRequest) (ClientState, error) {
 	if err := validate.GroupID(req.GroupID); err != nil {
 		return ClientState{}, httpx.BadRequest(err.Error())
@@ -668,7 +1106,7 @@ func (s *Service) Reload(ctx context.Context) (FrpcStatus, error) {
 		return FrpcStatus{}, err
 	}
 	err = s.applyConfigs(ctx, data, configs)
-	return s.pm.StatusAll(configs), err
+	return s.enrichRoomStatus(data, s.pm.StatusAll(configs)), err
 }
 
 func (s *Service) Status() FrpcStatus {
@@ -680,19 +1118,39 @@ func (s *Service) Status() FrpcStatus {
 	if err != nil {
 		return FrpcStatus{ConfigPath: s.ConfigPath(), LastError: err.Error()}
 	}
-	return s.pm.StatusAll(configs)
+	return s.enrichRoomStatus(data, s.pm.StatusAll(configs))
+}
+
+func (s *Service) enrichRoomStatus(data Data, status FrpcStatus) FrpcStatus {
+	if len(status.Nodes) == 0 || len(data.RoomRules) == 0 {
+		return status
+	}
+	roomsByNode := map[string]RoomRule{}
+	for _, rule := range data.RoomRules {
+		roomsByNode[roomProcessID(rule.ID)] = rule
+	}
+	for i := range status.Nodes {
+		if rule, ok := roomsByNode[status.Nodes[i].NodeID]; ok {
+			status.Nodes[i] = roomProcessStatus(rule, status.Nodes[i])
+		}
+	}
+	return status
 }
 
 func (s *Service) Logs() string {
 	data, err := s.store.Snapshot()
 	if err != nil {
-		return s.pm.Logs()
+		return redactSecrets(s.pm.Logs())
 	}
 	configs, err := s.renderClientConfigs(data)
 	if err != nil {
-		return s.pm.Logs()
+		return redactDataSecrets(s.pm.Logs(), data)
 	}
-	return s.pm.LogsFor(configs)
+	return redactDataSecrets(s.pm.LogsFor(configs), data)
+}
+
+func (s *Service) Stop() {
+	s.pm.StopAll()
 }
 
 func (s *Service) State() (ClientState, error) {
@@ -708,6 +1166,7 @@ func (s *Service) State() (ClientState, error) {
 		AccessRoutes: data.AccessRoutes,
 		Nodes:        mustListNodeViews(data),
 		PortRules:    sortedPortRules(data.PortRules),
+		RoomRules:    sortedRoomRuleViews(data.RoomRules),
 	}, nil
 }
 
@@ -728,7 +1187,11 @@ func (s *Service) ConfigPath() string {
 	if err != nil || data.Frpc.WorkDir == "" {
 		return filepath.Join("data", "frpc", "frpc.toml")
 	}
-	return primaryConfigPathFor(data)
+	configs, err := s.renderClientConfigs(data)
+	if err != nil || len(configs) == 0 {
+		return primaryConfigPathFor(data)
+	}
+	return configs[0].ConfigPath
 }
 
 func (s *Service) renderClientConfig(data Data) (string, error) {
@@ -757,7 +1220,7 @@ func (s *Service) renderClientConfigs(data Data) ([]runtimeFrpcConfig, error) {
 }
 
 func usesDirectMode(data Data) bool {
-	return len(data.PortRules) > 0 || (data.Group.GroupID == "" && data.Server.FrpsHost == "" && data.Server.BaseURL == "")
+	return len(data.PortRules) > 0 || len(data.RoomRules) > 0 || (data.Group.GroupID == "" && data.Server.FrpsHost == "" && data.Server.BaseURL == "")
 }
 
 func (s *Service) buildFrpcConfig(data Data) frp.ClientConfig {
@@ -855,32 +1318,62 @@ func (s *Service) buildDirectFrpcConfigs(data Data) ([]runtimeFrpcConfig, error)
 		}
 		rulesByNode[rule.NodeID] = append(rulesByNode[rule.NodeID], rule)
 	}
-	nodeIDs := make([]string, 0, len(rulesByNode))
-	for nodeID := range rulesByNode {
-		nodeIDs = append(nodeIDs, nodeID)
+	activeRoomRules := make([]RoomRule, 0)
+	for _, rule := range sortedRoomRules(data.RoomRules) {
+		if !rule.Enabled {
+			continue
+		}
+		if err := validateRoomRule(data, rule); err != nil {
+			return nil, err
+		}
+		activeRoomRules = append(activeRoomRules, rule)
 	}
-	if len(nodeIDs) == 0 {
+
+	runtimeIDs := make([]string, 0, len(rulesByNode)+len(activeRoomRules))
+	for nodeID := range rulesByNode {
+		runtimeIDs = append(runtimeIDs, nodeID)
+	}
+	for _, rule := range activeRoomRules {
+		runtimeIDs = append(runtimeIDs, roomProcessID(rule.ID))
+	}
+	if len(runtimeIDs) == 0 {
 		node, err := directNodeFor(data)
 		if err != nil {
 			return nil, err
 		}
-		nodeIDs = append(nodeIDs, node.ID)
+		runtimeIDs = append(runtimeIDs, node.ID)
 	}
-	sort.Slice(nodeIDs, func(i, j int) bool {
-		if nodeIDs[i] == DefaultNodeID {
+	sort.Slice(runtimeIDs, func(i, j int) bool {
+		if runtimeIDs[i] == DefaultNodeID {
 			return true
 		}
-		if nodeIDs[j] == DefaultNodeID {
+		if runtimeIDs[j] == DefaultNodeID {
 			return false
 		}
-		return nodeIDs[i] < nodeIDs[j]
+		return runtimeIDs[i] < runtimeIDs[j]
 	})
-	adminPorts, err := assignAdminPorts(data, nodeIDs)
+	adminPorts, err := assignAdminPorts(data, runtimeIDs)
 	if err != nil {
 		return nil, err
 	}
-	configs := make([]runtimeFrpcConfig, 0, len(nodeIDs))
-	for _, nodeID := range nodeIDs {
+	configs := make([]runtimeFrpcConfig, 0, len(runtimeIDs))
+	roomByProcessID := map[string]RoomRule{}
+	for _, rule := range activeRoomRules {
+		roomByProcessID[roomProcessID(rule.ID)] = rule
+	}
+	for _, nodeID := range runtimeIDs {
+		if roomRule, ok := roomByProcessID[nodeID]; ok {
+			cfg := s.buildRoomFrpcConfig(data, roomRule)
+			cfg.AdminPort = adminPorts[nodeID]
+			configs = append(configs, runtimeFrpcConfig{
+				NodeID:     nodeID,
+				ConfigPath: configPathForNode(data, nodeID),
+				LogPath:    logPathForNode(data, nodeID),
+				RestartKey: restartKeyForClientConfig(cfg),
+				Raw:        frp.RenderClientConfig(cfg),
+			})
+			continue
+		}
 		cfg, err := s.buildDirectFrpcConfigForNode(data, nodeID, rulesByNode[nodeID])
 		if err != nil {
 			return nil, err
@@ -926,6 +1419,48 @@ func (s *Service) buildDirectFrpcConfigForNode(data Data, nodeID string, rules [
 	return cfg, nil
 }
 
+func (s *Service) buildRoomFrpcConfig(data Data, rule RoomRule) frp.ClientConfig {
+	metas := map[string]string{
+		"room_id":           rule.RoomID,
+		"room_device_id":    rule.DeviceID,
+		"room_device_token": rule.DeviceToken,
+		"room_role":         string(rule.Role),
+		"room_rule_id":      rule.ID,
+	}
+	cfg := frp.ClientConfig{
+		ServerAddr:        rule.ServerAddr,
+		ServerPort:        rule.ServerPort,
+		NatHoleStunServer: strings.TrimSpace(rule.NatHoleStunServer),
+		AuthMethod:        "token",
+		AdminAddr:         data.Frpc.AdminAddr,
+		AdminPort:         data.Frpc.AdminPort,
+		AdminUser:         data.Frpc.AdminUser,
+		AdminPassword:     data.Frpc.AdminPassword,
+		Metadatas:         metas,
+	}
+	tunnelProtocol := string(normalizeRoomTunnelProtocol(rule.TunnelProtocol))
+	if rule.Role == RoomRoleHost {
+		cfg.Proxies = append(cfg.Proxies, frp.Proxy{
+			Name:      rule.ServerName,
+			Type:      tunnelProtocol,
+			LocalIP:   rule.LocalIP,
+			LocalPort: rule.LocalPort,
+			SecretKey: rule.SecretKey,
+			Metadatas: metas,
+		})
+	} else {
+		cfg.Visitors = append(cfg.Visitors, frp.Visitor{
+			Name:       "visitor." + rule.ID + "." + tunnelProtocol,
+			Type:       tunnelProtocol,
+			ServerName: rule.ServerName,
+			SecretKey:  rule.SecretKey,
+			BindAddr:   rule.BindAddr,
+			BindPort:   rule.BindPort,
+		})
+	}
+	return cfg
+}
+
 func (s *Service) requireJoined() (Data, error) {
 	data, err := s.store.Snapshot()
 	if err != nil {
@@ -957,7 +1492,7 @@ func (s *Service) postJSON(ctx context.Context, baseURL, endpoint string, payloa
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("remote API returned %s: %s", resp.Status, strings.TrimSpace(string(body)))
+		return fmt.Errorf("remote API returned %s: %s", resp.Status, redactSecrets(strings.TrimSpace(string(body)), sensitiveValuesFromPayload(payload)...))
 	}
 	if dst == nil {
 		return nil
@@ -1067,6 +1602,89 @@ func (s *Service) buildPortRule(data Data, existingID string, input portRuleInpu
 	}
 	_, err := s.validatePortRule(data, rule)
 	return rule, err
+}
+
+func (s *Service) resolveServerBaseURL(explicit string) (string, error) {
+	baseURL := strings.TrimRight(strings.TrimSpace(explicit), "/")
+	if baseURL == "" {
+		data, err := s.store.Snapshot()
+		if err != nil {
+			return "", err
+		}
+		baseURL = strings.TrimRight(strings.TrimSpace(data.Server.BaseURL), "/")
+	}
+	if baseURL == "" {
+		return "", httpx.BadRequest("control server is not configured; start client with --server or pass serverBaseURL")
+	}
+	if _, err := url.ParseRequestURI(baseURL); err != nil {
+		return "", httpx.BadRequest("control server must be an absolute URL")
+	}
+	return baseURL, nil
+}
+
+func validateRoomRule(data Data, rule RoomRule) error {
+	if rule.ID == "" {
+		return httpx.BadRequest("room rule id is required")
+	}
+	if rule.RoomID == "" {
+		return httpx.BadRequest("roomId is required")
+	}
+	if err := validate.Name(rule.Name); err != nil {
+		return httpx.BadRequest(err.Error())
+	}
+	if rule.Role != RoomRoleHost && rule.Role != RoomRoleVisitor {
+		return httpx.BadRequest("room role must be host or visitor")
+	}
+	switch normalizeRoomTunnelProtocol(rule.TunnelProtocol) {
+	case RoomTunnelXTCP, RoomTunnelSTCP:
+	default:
+		return httpx.BadRequest("room tunnelProtocol must be xtcp or stcp")
+	}
+	if strings.ContainsAny(strings.TrimSpace(rule.NatHoleStunServer), " /\\") {
+		return httpx.BadRequest("natHoleStunServer must be host:port without scheme or path")
+	}
+	if strings.TrimSpace(rule.ServerName) == "" {
+		return httpx.BadRequest("serverName is required")
+	}
+	if strings.TrimSpace(rule.ServerAddr) == "" {
+		return httpx.BadRequest("serverAddr is required")
+	}
+	if strings.Contains(rule.ServerAddr, "://") || strings.ContainsAny(rule.ServerAddr, " /\\") {
+		return httpx.BadRequest("serverAddr must be a host or IP without scheme or path")
+	}
+	if err := validate.Port(rule.ServerPort); err != nil {
+		return httpx.BadRequest(err.Error())
+	}
+	if strings.TrimSpace(rule.DeviceID) == "" || strings.TrimSpace(rule.DeviceToken) == "" {
+		return httpx.BadRequest("room device credentials are required")
+	}
+	if strings.TrimSpace(rule.SecretKey) == "" {
+		return httpx.BadRequest("room secret key is required")
+	}
+	if rule.Role == RoomRoleHost {
+		if err := validate.LocalIP(rule.LocalIP); err != nil {
+			return httpx.BadRequest(err.Error())
+		}
+		if err := validate.Port(rule.LocalPort); err != nil {
+			return httpx.BadRequest(err.Error())
+		}
+	} else {
+		if err := validate.LocalIP(rule.BindAddr); err != nil {
+			return httpx.BadRequest(err.Error())
+		}
+		if err := validate.Port(rule.BindPort); err != nil {
+			return httpx.BadRequest(err.Error())
+		}
+		for _, existing := range data.RoomRules {
+			if existing.ID == rule.ID || !existing.Enabled || existing.Role != RoomRoleVisitor {
+				continue
+			}
+			if existing.BindAddr == rule.BindAddr && existing.BindPort == rule.BindPort && rule.Enabled {
+				return httpx.Conflict("room visitor bind port already in use")
+			}
+		}
+	}
+	return nil
 }
 
 func (s *Service) validatePortRule(data Data, rule PortRule) (NodeConfig, error) {
@@ -1465,6 +2083,10 @@ func proxyNameForRule(rule PortRule) string {
 	return "port." + rule.ID
 }
 
+func roomProcessID(ruleID string) string {
+	return "room-" + safeFilePart(ruleID)
+}
+
 func customDomainsForRule(rule PortRule) []string {
 	if rule.Protocol == "http" && rule.Domain != "" {
 		return []string{rule.Domain}
@@ -1755,6 +2377,78 @@ func sortedPortRules(values map[string]PortRule) []PortRule {
 	return out
 }
 
+func sortedRoomRules(values map[string]RoomRule) []RoomRule {
+	out := make([]RoomRule, 0, len(values))
+	for _, value := range values {
+		out = append(out, value)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].CreatedAt.Equal(out[j].CreatedAt) {
+			return out[i].ID < out[j].ID
+		}
+		return out[i].CreatedAt.Before(out[j].CreatedAt)
+	})
+	return out
+}
+
+func sortedRoomRuleViews(values map[string]RoomRule) []RoomRuleView {
+	rules := sortedRoomRules(values)
+	out := make([]RoomRuleView, 0, len(rules))
+	for _, rule := range rules {
+		out = append(out, toRoomRuleView(rule))
+	}
+	return out
+}
+
+func toRoomRuleView(rule RoomRule) RoomRuleView {
+	return RoomRuleView{
+		ID:                rule.ID,
+		RoomID:            rule.RoomID,
+		Name:              rule.Name,
+		Role:              rule.Role,
+		TunnelProtocol:    normalizeRoomTunnelProtocol(rule.TunnelProtocol),
+		NatHoleStunServer: rule.NatHoleStunServer,
+		ServerName:        rule.ServerName,
+		ServerAddr:        rule.ServerAddr,
+		ServerPort:        rule.ServerPort,
+		DeviceID:          rule.DeviceID,
+		DeviceTokenSet:    rule.DeviceToken != "",
+		SecretKeySet:      rule.SecretKey != "",
+		LocalIP:           rule.LocalIP,
+		LocalPort:         rule.LocalPort,
+		BindAddr:          rule.BindAddr,
+		BindPort:          rule.BindPort,
+		Enabled:           rule.Enabled,
+		CreatedAt:         rule.CreatedAt,
+		UpdatedAt:         rule.UpdatedAt,
+	}
+}
+
+func normalizeRoomTunnelProtocol(v RoomTunnelProtocol) RoomTunnelProtocol {
+	switch RoomTunnelProtocol(strings.ToLower(strings.TrimSpace(string(v)))) {
+	case "", RoomTunnelXTCP:
+		return RoomTunnelXTCP
+	case RoomTunnelSTCP:
+		return RoomTunnelSTCP
+	default:
+		return RoomTunnelProtocol(strings.ToLower(strings.TrimSpace(string(v))))
+	}
+}
+
+func roomProcessStatus(rule RoomRule, status FrpcNodeStatus) FrpcNodeStatus {
+	status.RoomRuleID = rule.ID
+	status.RoomID = rule.RoomID
+	status.RoomName = rule.Name
+	status.RoomRole = rule.Role
+	status.TunnelProtocol = normalizeRoomTunnelProtocol(rule.TunnelProtocol)
+	if rule.Role == RoomRoleVisitor {
+		status.LocalEndpoint = net.JoinHostPort(defaultString(rule.BindAddr, "127.0.0.1"), fmt.Sprint(rule.BindPort))
+	} else {
+		status.LocalEndpoint = net.JoinHostPort(defaultString(rule.LocalIP, "127.0.0.1"), fmt.Sprint(rule.LocalPort))
+	}
+	return status
+}
+
 func mustListNodeViews(data Data) []NodeView {
 	nodes := make([]NodeView, 0, len(data.Nodes))
 	for _, node := range data.Nodes {
@@ -2001,4 +2695,12 @@ func defaultString(v, fallback string) string {
 		return fallback
 	}
 	return v
+}
+
+func defaultDeviceName() string {
+	name, err := os.Hostname()
+	if err != nil || strings.TrimSpace(name) == "" {
+		return "local-client"
+	}
+	return strings.TrimSpace(name)
 }

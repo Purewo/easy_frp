@@ -50,11 +50,13 @@ func runServer(args []string) error {
 	fs := flag.NewFlagSet("server", flag.ExitOnError)
 	addr := fs.String("addr", ":8080", "HTTP listen address")
 	data := fs.String("data", filepath.Join("data", "server.json"), "server JSON data file")
+	frpsAddr := fs.String("frps-addr", envOrDefault("FRP_PANEL_FRPS_ADDR", ""), "public frps address for room clients")
+	frpsPort := fs.Int("frps-port", envIntOrDefault("FRP_PANEL_FRPS_PORT", 7000), "public frps bind port for room clients")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
 
-	svc, err := control.OpenService(*data)
+	svc, err := control.OpenService(*data, control.WithFrpsEndpoint(*frpsAddr, *frpsPort))
 	if err != nil {
 		return err
 	}
@@ -62,12 +64,17 @@ func runServer(args []string) error {
 }
 
 func runClient(args []string) error {
+	if len(args) > 0 && isClientDirectCommand(args[0]) {
+		return runClientDirect(args)
+	}
+
 	fs := flag.NewFlagSet("client", flag.ExitOnError)
 	defaultNode := client.DefaultNodeConfig()
 	addr := fs.String("addr", "127.0.0.1:7410", "local HTTP listen address")
 	data := fs.String("data", filepath.Join("data", "client.json"), "client JSON data file")
 	frpcPath := fs.String("frpc", "frpc.exe", "frpc executable path")
 	workDir := fs.String("workdir", filepath.Join("data", "frpc"), "frpc work directory")
+	serverBaseURL := fs.String("server", envOrDefault("FRP_PANEL_SERVER", client.DefaultRoomControlServerURL), "control server base URL for room mode")
 	nodeID := fs.String("node-id", envOrDefault("FRP_PANEL_NODE_ID", defaultNode.ID), "default frps node id")
 	nodeName := fs.String("node-name", envOrDefault("FRP_PANEL_NODE_NAME", defaultNode.Name), "default frps node name")
 	frpsHost := fs.String("frps-host", envOrDefault("FRP_PANEL_FRPS_HOST", defaultNode.ServerAddr), "default frps server address")
@@ -88,7 +95,7 @@ func runClient(args []string) error {
 	defaultNode.WebBaseDomain = *webBaseDomain
 	defaultNode.WebScheme = *webScheme
 	defaultNode.VhostHTTPPort = *vhostHTTPPort
-	svc, err := client.OpenService(*data, *frpcPath, *workDir, client.WithDefaultNode(defaultNode))
+	svc, err := client.OpenService(*data, *frpcPath, *workDir, client.WithDefaultNode(defaultNode), client.WithServerBaseURL(*serverBaseURL))
 	if err != nil {
 		return err
 	}

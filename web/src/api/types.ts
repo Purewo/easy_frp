@@ -36,6 +36,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRooms"];
+        put?: never;
+        post: operations["createRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/rooms/{roomId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getRoom"];
+        put?: never;
+        post?: never;
+        delete: operations["deleteRoom"];
+        options?: never;
+        head?: never;
+        patch: operations["updateRoom"];
+        trace?: never;
+    };
+    "/v1/rooms/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["joinRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/nodes": {
         parameters: {
             query?: never;
@@ -164,6 +212,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/ports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPortRules"];
+        put?: never;
+        post: operations["createPortRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ports/{portId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updatePortRule"];
+        post?: never;
+        delete: operations["deletePortRule"];
+        options?: never;
+        head?: never;
+        patch: operations["patchPortRule"];
+        trace?: never;
+    };
+    "/v1/frpc/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["directFrpcStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/frpc/reload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["directFrpcReload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["directLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/client/server": {
         parameters: {
             query?: never;
@@ -244,6 +372,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/client/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clientListRoomRules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/client/rooms/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clientListRoomStatuses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/client/rooms/host": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["clientCreateRoomHost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/client/rooms/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["clientJoinRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/client/rooms/{roomRuleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["clientDeleteRoomRule"];
+        options?: never;
+        head?: never;
+        patch: operations["clientPatchRoomRule"];
+        trace?: never;
+    };
+    "/v1/client/rooms/{roomRuleId}/doctor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["clientDoctorRoomRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/client/network/interfaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clientNetworkInterfaces"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/client/xtcp/nathole/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["clientDiscoverNatHole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/client/frpc/status": {
         parameters: {
             query?: never;
@@ -296,6 +552,9 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ErrorResponse: {
+            error: string;
+        };
         CreateGroupRequest: {
             groupId: string;
             password: string;
@@ -313,6 +572,53 @@ export interface components {
             id?: string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        CreateRoomRequest: {
+            name: string;
+            deviceName: string;
+        };
+        RoomView: {
+            id: string;
+            name: string;
+            serverName: string;
+            hostDeviceId?: string;
+            frpsAddr: string;
+            frpsPort: number;
+            enabled: boolean;
+            memberCount: number;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        RoomDeviceView: {
+            id: string;
+            roomId: string;
+            name: string;
+            /** @enum {string} */
+            role: "host" | "visitor";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            lastSeenAt: string;
+        };
+        CreateRoomResponse: {
+            room: components["schemas"]["RoomView"];
+            roomCode: string;
+            device: components["schemas"]["RoomDeviceView"];
+            deviceToken: string;
+        };
+        JoinRoomRequest: {
+            roomCode: string;
+            deviceName: string;
+        };
+        JoinRoomResponse: {
+            room: components["schemas"]["RoomView"];
+            device: components["schemas"]["RoomDeviceView"];
+            deviceToken: string;
+        };
+        UpdateRoomRequest: {
+            enabled: boolean;
         };
         CreateNodeRequest: {
             name: string;
@@ -334,6 +640,74 @@ export interface components {
         PortRange: {
             from: number;
             to: number;
+        };
+        NodeView: {
+            id: string;
+            name: string;
+            serverAddr: string;
+            frpsPort: number;
+            /** @enum {string} */
+            authMethod: "token";
+            authTokenSet: boolean;
+            webBaseDomain?: string;
+            webScheme?: string;
+            vhostHTTPPort?: number;
+            allowPorts?: components["schemas"]["PortRange"][];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        PortRule: {
+            id: string;
+            nodeId: string;
+            name: string;
+            /** @enum {string} */
+            protocol: "tcp" | "udp" | "http";
+            localIP: string;
+            localPort: number;
+            remotePort?: number;
+            subdomain?: string;
+            domain?: string;
+            enabled: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreatePortRuleRequest: {
+            /** @default default */
+            nodeId: string;
+            name?: string;
+            /** @enum {string} */
+            protocol: "tcp" | "udp" | "http";
+            /** @default 127.0.0.1 */
+            localIP: string;
+            localPort: number;
+            /** @description Required for tcp and udp rules. Ignored for http rules. */
+            remotePort?: number;
+            subdomain?: string;
+            domain?: string;
+            /** @default true */
+            enabled: boolean;
+        };
+        UpdatePortRuleRequest: {
+            /** @default default */
+            nodeId: string;
+            name?: string;
+            /** @enum {string} */
+            protocol: "tcp" | "udp" | "http";
+            /** @default 127.0.0.1 */
+            localIP: string;
+            localPort: number;
+            /** @description Required for tcp and udp rules. Ignored for http rules. */
+            remotePort?: number;
+            subdomain?: string;
+            domain?: string;
+            enabled: boolean;
+        };
+        PatchPortRuleRequest: {
+            enabled: boolean;
         };
         DeviceAuth: {
             groupId: string;
@@ -416,16 +790,151 @@ export interface components {
             bindPort: number;
             fallbackBindPort?: number;
         };
+        ClientRoomRuleView: {
+            id: string;
+            roomId: string;
+            /** @description Present only in host create responses. Treat as secret. */
+            roomCode?: string;
+            name: string;
+            /** @enum {string} */
+            role: "host" | "visitor";
+            /**
+             * @default xtcp
+             * @enum {string}
+             */
+            tunnelProtocol: "xtcp" | "stcp";
+            natHoleStunServer?: string;
+            serverName: string;
+            serverAddr: string;
+            serverPort: number;
+            deviceId: string;
+            deviceTokenSet: boolean;
+            secretKeySet: boolean;
+            localIP?: string;
+            localPort?: number;
+            bindAddr?: string;
+            bindPort?: number;
+            enabled: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ClientCreateRoomHostRequest: {
+            name: string;
+            deviceName?: string;
+            /** @description Optional override for private control-server deployments. Omit it in the normal frontend flow so the local backend uses the built-in remote control server. */
+            serverBaseURL?: string;
+            /**
+             * @default xtcp
+             * @enum {string}
+             */
+            tunnelProtocol: "xtcp" | "stcp";
+            natHoleStunServer?: string;
+            /** @default 127.0.0.1 */
+            localIP: string;
+            localPort: number;
+            /** @default true */
+            enabled: boolean;
+        };
+        ClientJoinRoomRequest: {
+            roomCode: string;
+            name?: string;
+            deviceName?: string;
+            /** @description Optional override for private control-server deployments. Omit it in the normal frontend flow so the local backend uses the built-in remote control server. */
+            serverBaseURL?: string;
+            /**
+             * @default xtcp
+             * @enum {string}
+             */
+            tunnelProtocol: "xtcp" | "stcp";
+            natHoleStunServer?: string;
+            /** @default 127.0.0.1 */
+            bindAddr: string;
+            bindPort: number;
+            /** @default true */
+            enabled: boolean;
+        };
+        ClientPatchRoomRuleRequest: {
+            enabled: boolean;
+        };
+        ClientRoomRuleStatus: {
+            rule: components["schemas"]["ClientRoomRuleView"];
+            process: components["schemas"]["FrpcNodeStatus"];
+        };
+        NodeDoctorCheck: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            status: "pass" | "warn" | "fail" | "skipped";
+            message: string;
+            /** Format: int64 */
+            durationMs?: number;
+            details?: {
+                [key: string]: string;
+            };
+        };
+        ClientRoomDoctorResult: {
+            rule: components["schemas"]["ClientRoomRuleView"];
+            /** @enum {string} */
+            overall: "pass" | "warn" | "fail";
+            checks: components["schemas"]["NodeDoctorCheck"][];
+        };
+        NatHoleDiscoverRequest: {
+            stunServer?: string;
+            /** @description Diagnostic-only local UDP bind address, for example 10.7.24.208:0. */
+            localAddr?: string;
+        };
+        NatHoleDiscoverResult: {
+            success: boolean;
+            stunServer?: string;
+            natType?: string;
+            behavior?: string;
+            externalAddresses?: string[];
+            localAddress?: string;
+            publicNetwork?: boolean;
+            rawOutput: string;
+            error?: string;
+            /** Format: int64 */
+            durationMs?: number;
+        };
+        NetworkInterfaceView: {
+            name: string;
+            index: number;
+            address: string;
+            loopback: boolean;
+            multicast: boolean;
+        };
         ClientState: {
             server?: Record<string, never>;
             group?: Record<string, never>;
             frpc?: Record<string, never>;
+            nodes?: components["schemas"]["NodeView"][];
+            portRules?: components["schemas"]["PortRule"][];
+            roomRules?: components["schemas"]["ClientRoomRuleView"][];
         };
         FrpcStatus: {
             running?: boolean;
             pid?: number;
             configPath?: string;
             lastError?: string;
+            nodes?: components["schemas"]["FrpcNodeStatus"][];
+        };
+        FrpcNodeStatus: {
+            nodeId: string;
+            running: boolean;
+            pid?: number;
+            configPath: string;
+            logPath?: string;
+            lastError?: string;
+            roomRuleId?: string;
+            roomId?: string;
+            roomName?: string;
+            /** @enum {string} */
+            roomRole?: "host" | "visitor";
+            /** @enum {string} */
+            tunnelProtocol?: "xtcp" | "stcp";
+            localEndpoint?: string;
         };
         PluginDecision: {
             reject: boolean;
@@ -436,12 +945,19 @@ export interface components {
     responses: never;
     parameters: {
         groupId: string;
+        roomId: string;
         nodeId: string;
         exposureId: string;
+        portId: string;
+        roomRuleId: string;
         xGroupId: string;
         xDeviceId: string;
         /** @description Bearer device token */
         authorization: string;
+        xRoomId: string;
+        xRoomDeviceId: string;
+        /** @description Room device token. Authorization bearer token is also accepted by the server when this header is omitted. */
+        xRoomDeviceToken: string;
     };
     requestBodies: never;
     headers: never;
@@ -495,6 +1011,242 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JoinGroupResponse"];
+                };
+            };
+        };
+    };
+    listRooms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description XTCP rooms */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"][];
+                };
+            };
+        };
+    };
+    createRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description XTCP room created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateRoomResponse"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: components["parameters"]["roomId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description XTCP room */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Room not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteRoom: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Room-ID": components["parameters"]["xRoomId"];
+                "X-Room-Device-ID": components["parameters"]["xRoomDeviceId"];
+                /** @description Room device token. Authorization bearer token is also accepted by the server when this header is omitted. */
+                "X-Room-Device-Token": components["parameters"]["xRoomDeviceToken"];
+            };
+            path: {
+                roomId: components["parameters"]["roomId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description XTCP room deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Room device auth failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Room not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateRoom: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Room-ID": components["parameters"]["xRoomId"];
+                "X-Room-Device-ID": components["parameters"]["xRoomDeviceId"];
+                /** @description Room device token. Authorization bearer token is also accepted by the server when this header is omitted. */
+                "X-Room-Device-Token": components["parameters"]["xRoomDeviceToken"];
+            };
+            path: {
+                roomId: components["parameters"]["roomId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description XTCP room updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoomView"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Room device auth failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Room not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    joinRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JoinRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description XTCP room joined */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JoinRoomResponse"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid room code */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Room not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -737,6 +1489,182 @@ export interface operations {
             };
         };
     };
+    listPortRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description TCP/UDP port rules */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortRule"][];
+                };
+            };
+        };
+    };
+    createPortRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePortRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Port rule created and applied to frpc */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortRule"];
+                };
+            };
+        };
+    };
+    updatePortRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                portId: components["parameters"]["portId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePortRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Port rule updated and applied to frpc */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortRule"];
+                };
+            };
+        };
+    };
+    deletePortRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                portId: components["parameters"]["portId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Port rule deleted and applied to frpc */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    patchPortRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                portId: components["parameters"]["portId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchPortRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Port rule state updated and applied to frpc */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortRule"];
+                };
+            };
+        };
+    };
+    directFrpcStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description frpc status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FrpcStatus"];
+                };
+            };
+        };
+    };
+    directFrpcReload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description frpc reload result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FrpcStatus"];
+                };
+            };
+        };
+    };
+    directLogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent frpc logs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                };
+            };
+        };
+    };
     configureClientServer: {
         parameters: {
             query?: never;
@@ -849,6 +1777,206 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessRoute"];
+                };
+            };
+        };
+    };
+    clientListRoomRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Local XTCP/STCP room rules */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRoomRuleView"][];
+                };
+            };
+        };
+    };
+    clientListRoomStatuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Local room rules with frpc process state */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRoomRuleStatus"][];
+                };
+            };
+        };
+    };
+    clientCreateRoomHost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientCreateRoomHostRequest"];
+            };
+        };
+        responses: {
+            /** @description Local room host created and applied */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRoomRuleView"];
+                };
+            };
+        };
+    };
+    clientJoinRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientJoinRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description Local room visitor created and applied */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRoomRuleView"];
+                };
+            };
+        };
+    };
+    clientDeleteRoomRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomRuleId: components["parameters"]["roomRuleId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Local room rule deleted and applied */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    clientPatchRoomRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomRuleId: components["parameters"]["roomRuleId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientPatchRoomRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description Local room rule updated and applied */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRoomRuleView"];
+                };
+            };
+        };
+    };
+    clientDoctorRoomRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomRuleId: components["parameters"]["roomRuleId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Local room diagnostic result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientRoomDoctorResult"];
+                };
+            };
+        };
+    };
+    clientNetworkInterfaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Local IPv4 interfaces for XTCP diagnostics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkInterfaceView"][];
+                };
+            };
+        };
+    };
+    clientDiscoverNatHole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NatHoleDiscoverRequest"];
+            };
+        };
+        responses: {
+            /** @description frpc nathole discover output */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NatHoleDiscoverResult"];
                 };
             };
         };

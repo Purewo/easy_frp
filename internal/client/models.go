@@ -14,6 +14,7 @@ type Data struct {
 	AccessRoutes map[string]control.AccessRoute `json:"accessRoutes"`
 	Nodes        map[string]NodeConfig          `json:"nodes"`
 	PortRules    map[string]PortRule            `json:"portRules"`
+	RoomRules    map[string]RoomRule            `json:"roomRules"`
 }
 
 func NormalizeData(data *Data) {
@@ -47,9 +48,15 @@ func NormalizeData(data *Data) {
 	if data.PortRules == nil {
 		data.PortRules = map[string]PortRule{}
 	}
+	if data.RoomRules == nil {
+		data.RoomRules = map[string]RoomRule{}
+	}
 }
 
-const DefaultNodeID = "default"
+const (
+	DefaultNodeID               = "default"
+	DefaultRoomControlServerURL = "http://149.118.158.112:18080"
+)
 
 type NodeConfig struct {
 	ID            string              `json:"id"`
@@ -138,6 +145,65 @@ type PortRule struct {
 	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
+type RoomRole string
+
+const (
+	RoomRoleHost    RoomRole = "host"
+	RoomRoleVisitor RoomRole = "visitor"
+)
+
+type RoomTunnelProtocol string
+
+const (
+	RoomTunnelXTCP RoomTunnelProtocol = "xtcp"
+	RoomTunnelSTCP RoomTunnelProtocol = "stcp"
+)
+
+type RoomRule struct {
+	ID                string             `json:"id"`
+	RoomID            string             `json:"roomId"`
+	Name              string             `json:"name"`
+	Role              RoomRole           `json:"role"`
+	TunnelProtocol    RoomTunnelProtocol `json:"tunnelProtocol,omitempty"`
+	NatHoleStunServer string             `json:"natHoleStunServer,omitempty"`
+	ServerName        string             `json:"serverName"`
+	ServerAddr        string             `json:"serverAddr"`
+	ServerPort        int                `json:"serverPort"`
+	DeviceID          string             `json:"deviceId"`
+	DeviceToken       string             `json:"deviceToken,omitempty"`
+	SecretKey         string             `json:"secretKey,omitempty"`
+	LocalIP           string             `json:"localIP,omitempty"`
+	LocalPort         int                `json:"localPort,omitempty"`
+	BindAddr          string             `json:"bindAddr,omitempty"`
+	BindPort          int                `json:"bindPort,omitempty"`
+	Enabled           bool               `json:"enabled"`
+	CreatedAt         time.Time          `json:"createdAt"`
+	UpdatedAt         time.Time          `json:"updatedAt"`
+}
+
+type RoomRuleView struct {
+	ID                string             `json:"id"`
+	RoomID            string             `json:"roomId"`
+	RoomCode          string             `json:"roomCode,omitempty"`
+	Name              string             `json:"name"`
+	Role              RoomRole           `json:"role"`
+	TunnelProtocol    RoomTunnelProtocol `json:"tunnelProtocol"`
+	NatHoleStunServer string             `json:"natHoleStunServer,omitempty"`
+	ServerName        string             `json:"serverName"`
+	ServerAddr        string             `json:"serverAddr"`
+	ServerPort        int                `json:"serverPort"`
+	DeviceID          string             `json:"deviceId"`
+	DeviceTokenSet    bool               `json:"deviceTokenSet"`
+	SecretKeySet      bool               `json:"secretKeySet"`
+	LocalIP           string             `json:"localIP,omitempty"`
+	LocalPort         int                `json:"localPort,omitempty"`
+	BindAddr          string             `json:"bindAddr,omitempty"`
+	BindPort          int                `json:"bindPort,omitempty"`
+	Enabled           bool               `json:"enabled"`
+	CreatedAt         time.Time          `json:"createdAt"`
+	UpdatedAt         time.Time          `json:"updatedAt"`
+}
+
 type CreatePortRuleRequest struct {
 	NodeID     string `json:"nodeId"`
 	Name       string `json:"name"`
@@ -164,6 +230,70 @@ type UpdatePortRuleRequest struct {
 
 type PatchPortRuleRequest struct {
 	Enabled *bool `json:"enabled"`
+}
+
+type CreateRoomHostRequest struct {
+	Name              string             `json:"name"`
+	DeviceName        string             `json:"deviceName"`
+	ServerBaseURL     string             `json:"serverBaseURL,omitempty"`
+	TunnelProtocol    RoomTunnelProtocol `json:"tunnelProtocol,omitempty"`
+	NatHoleStunServer string             `json:"natHoleStunServer,omitempty"`
+	LocalIP           string             `json:"localIP"`
+	LocalPort         int                `json:"localPort"`
+	Enabled           *bool              `json:"enabled,omitempty"`
+}
+
+type JoinRoomRequest struct {
+	RoomCode          string             `json:"roomCode"`
+	Name              string             `json:"name"`
+	DeviceName        string             `json:"deviceName"`
+	ServerBaseURL     string             `json:"serverBaseURL,omitempty"`
+	TunnelProtocol    RoomTunnelProtocol `json:"tunnelProtocol,omitempty"`
+	NatHoleStunServer string             `json:"natHoleStunServer,omitempty"`
+	BindAddr          string             `json:"bindAddr"`
+	BindPort          int                `json:"bindPort"`
+	Enabled           *bool              `json:"enabled,omitempty"`
+}
+
+type PatchRoomRuleRequest struct {
+	Enabled *bool `json:"enabled"`
+}
+
+type RoomDoctorResult struct {
+	Rule    RoomRuleView      `json:"rule"`
+	Overall string            `json:"overall"`
+	Checks  []NodeDoctorCheck `json:"checks"`
+}
+
+type RoomRuleStatus struct {
+	Rule    RoomRuleView   `json:"rule"`
+	Process FrpcNodeStatus `json:"process"`
+}
+
+type NatHoleDiscoverRequest struct {
+	StunServer string `json:"stunServer,omitempty"`
+	LocalAddr  string `json:"localAddr,omitempty"`
+}
+
+type NatHoleDiscoverResult struct {
+	Success           bool     `json:"success"`
+	StunServer        string   `json:"stunServer,omitempty"`
+	NatType           string   `json:"natType,omitempty"`
+	Behavior          string   `json:"behavior,omitempty"`
+	ExternalAddresses []string `json:"externalAddresses,omitempty"`
+	LocalAddress      string   `json:"localAddress,omitempty"`
+	PublicNetwork     *bool    `json:"publicNetwork,omitempty"`
+	RawOutput         string   `json:"rawOutput"`
+	Error             string   `json:"error,omitempty"`
+	DurationMS        int64    `json:"durationMs,omitempty"`
+}
+
+type NetworkInterfaceView struct {
+	Name      string `json:"name"`
+	Index     int    `json:"index"`
+	Address   string `json:"address"`
+	Loopback  bool   `json:"loopback"`
+	Multicast bool   `json:"multicast"`
 }
 
 type ServerConfig struct {
@@ -229,6 +359,7 @@ type ClientState struct {
 	AccessRoutes map[string]control.AccessRoute `json:"accessRoutes"`
 	Nodes        []NodeView                     `json:"nodes"`
 	PortRules    []PortRule                     `json:"portRules"`
+	RoomRules    []RoomRuleView                 `json:"roomRules"`
 }
 
 type FrpcStatus struct {
@@ -240,10 +371,16 @@ type FrpcStatus struct {
 }
 
 type FrpcNodeStatus struct {
-	NodeID     string `json:"nodeId"`
-	Running    bool   `json:"running"`
-	PID        int    `json:"pid,omitempty"`
-	ConfigPath string `json:"configPath"`
-	LogPath    string `json:"logPath,omitempty"`
-	LastError  string `json:"lastError,omitempty"`
+	NodeID         string             `json:"nodeId"`
+	Running        bool               `json:"running"`
+	PID            int                `json:"pid,omitempty"`
+	ConfigPath     string             `json:"configPath"`
+	LogPath        string             `json:"logPath,omitempty"`
+	LastError      string             `json:"lastError,omitempty"`
+	RoomRuleID     string             `json:"roomRuleId,omitempty"`
+	RoomID         string             `json:"roomId,omitempty"`
+	RoomName       string             `json:"roomName,omitempty"`
+	RoomRole       RoomRole           `json:"roomRole,omitempty"`
+	TunnelProtocol RoomTunnelProtocol `json:"tunnelProtocol,omitempty"`
+	LocalEndpoint  string             `json:"localEndpoint,omitempty"`
 }

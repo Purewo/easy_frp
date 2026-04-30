@@ -122,6 +122,106 @@ func NewHandler(svc *Service) http.Handler {
 		httpx.Empty(w, http.StatusNoContent)
 	})
 
+	mux.HandleFunc("GET /v1/client/rooms", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.ListRoomRules()
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("GET /v1/client/rooms/status", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.ListRoomRuleStatuses()
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("POST /v1/client/rooms/host", func(w http.ResponseWriter, r *http.Request) {
+		var req CreateRoomHostRequest
+		if err := httpx.Decode(r, &req); err != nil {
+			httpx.HandleError(w, httpx.BadRequest(err.Error()))
+			return
+		}
+		resp, err := svc.CreateRoomHost(r.Context(), req)
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusCreated, resp)
+	})
+
+	mux.HandleFunc("POST /v1/client/rooms/join", func(w http.ResponseWriter, r *http.Request) {
+		var req JoinRoomRequest
+		if err := httpx.Decode(r, &req); err != nil {
+			httpx.HandleError(w, httpx.BadRequest(err.Error()))
+			return
+		}
+		resp, err := svc.JoinRoom(r.Context(), req)
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusCreated, resp)
+	})
+
+	mux.HandleFunc("PATCH /v1/client/rooms/{roomRuleId}", func(w http.ResponseWriter, r *http.Request) {
+		var req PatchRoomRuleRequest
+		if err := httpx.Decode(r, &req); err != nil {
+			httpx.HandleError(w, httpx.BadRequest(err.Error()))
+			return
+		}
+		resp, err := svc.PatchRoomRule(r.Context(), r.PathValue("roomRuleId"), req)
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("DELETE /v1/client/rooms/{roomRuleId}", func(w http.ResponseWriter, r *http.Request) {
+		if err := svc.DeleteRoomRule(r.Context(), r.PathValue("roomRuleId")); err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.Empty(w, http.StatusNoContent)
+	})
+
+	mux.HandleFunc("POST /v1/client/rooms/{roomRuleId}/doctor", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.DoctorRoomRule(r.Context(), r.PathValue("roomRuleId"))
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("GET /v1/client/network/interfaces", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.ListNetworkInterfaces()
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("POST /v1/client/xtcp/nathole/discover", func(w http.ResponseWriter, r *http.Request) {
+		var req NatHoleDiscoverRequest
+		if err := httpx.Decode(r, &req); err != nil {
+			httpx.HandleError(w, httpx.BadRequest(err.Error()))
+			return
+		}
+		resp, err := svc.DiscoverNatHole(r.Context(), req)
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
 	mux.HandleFunc("POST /v1/client/server", func(w http.ResponseWriter, r *http.Request) {
 		var req ConfigureServerRequest
 		if err := httpx.Decode(r, &req); err != nil {

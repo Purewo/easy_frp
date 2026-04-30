@@ -67,7 +67,7 @@ func HandleError(w http.ResponseWriter, err error) {
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "authorization, content-type, x-device-id, x-group-id")
+		w.Header().Set("Access-Control-Allow-Headers", "authorization, content-type, x-device-id, x-group-id, x-room-device-id, x-room-device-token, x-room-id")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

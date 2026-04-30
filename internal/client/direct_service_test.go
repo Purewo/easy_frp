@@ -2,12 +2,17 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"frp-ui-backend/internal/control"
 )
 
 func TestDirectPortRulesCreatePatchDeleteAndRenderConfig(t *testing.T) {
@@ -116,6 +121,17 @@ func TestDirectPortRulesCreatePatchDeleteAndRenderConfig(t *testing.T) {
 	}
 	if verifyCount != 3 || applyCount != 3 {
 		t.Fatalf("expected verify/apply for create, patch and delete; got %d/%d", verifyCount, applyCount)
+	}
+}
+
+func TestOpenServiceCanUseDetachedProcessManager(t *testing.T) {
+	dir := t.TempDir()
+	svc, err := OpenService(filepath.Join(dir, "client.json"), "frpc.exe", filepath.Join(dir, "frpc"), WithDetachedFrpcProcesses())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !svc.pm.detached {
+		t.Fatal("expected detached process manager")
 	}
 }
 
@@ -505,5 +521,383 @@ func TestDirectPortRuleRollbackWhenApplyFails(t *testing.T) {
 	}
 	if strings.Contains(string(raw), `[[proxies]]`) {
 		t.Fatalf("expected config rollback without proxies:\n%s", raw)
+	}
+}
+
+func TestRoomHostJoinAndRenderXTCPConfigs(t *testing.T) {
+	controlSvc, err := control.OpenService(filepath.Join(t.TempDir(), "server.json"), control.WithFrpsEndpoint("frps.example.com", 7000))
+	if err != nil {
+		t.Fatal(err)
+	}
+	controlServer := httptest.NewServer(control.NewHandler(controlSvc))
+	defer controlServer.Close()
+
+	hostDir := t.TempDir()
+	hostSvc, err := OpenService(filepath.Join(hostDir, "client.json"), "frpc.exe", filepath.Join(hostDir, "frpc"), WithServerBaseURL(controlServer.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	hostSvc.verify = func(context.Context, string, string) error { return nil }
+	var hostConfigs []runtimeFrpcConfig
+	hostSvc.applyAll = func(ctx context.Context, frpcPath string, configs []runtimeFrpcConfig) error {
+		hostConfigs = append([]runtimeFrpcConfig(nil), configs...)
+		return nil
+	}
+	host, err := hostSvc.CreateRoomHost(context.Background(), CreateRoomHostRequest{
+		Name:       "private-api",
+		DeviceName: "host-box",
+		LocalIP:    "127.0.0.1",
+		LocalPort:  8080,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if host.RoomCode == "" || !host.SecretKeySet || host.Role != RoomRoleHost {
+		t.Fatalf("unexpected host room view: %#v", host)
+	}
+	if len(hostConfigs) != 1 {
+		t.Fatalf("expected one host config, got %#v", hostConfigs)
+	}
+	for _, want := range []string{
+		`serverAddr = "frps.example.com"`,
+		`room_id = "` + host.RoomID + `"`,
+		`room_role = "host"`,
+		`[[proxies]]`,
+		`name = "` + host.ServerName + `"`,
+		`type = "xtcp"`,
+		`localPort = 8080`,
+		`secretKey = "`,
+	} {
+		if !strings.Contains(hostConfigs[0].Raw, want) {
+			t.Fatalf("host config missing %q:\n%s", want, hostConfigs[0].Raw)
+		}
+	}
+
+	visitorDir := t.TempDir()
+	visitorSvc, err := OpenService(filepath.Join(visitorDir, "client.json"), "frpc.exe", filepath.Join(visitorDir, "frpc"), WithServerBaseURL(controlServer.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	visitorSvc.verify = func(context.Context, string, string) error { return nil }
+	var visitorConfigs []runtimeFrpcConfig
+	visitorSvc.applyAll = func(ctx context.Context, frpcPath string, configs []runtimeFrpcConfig) error {
+		visitorConfigs = append([]runtimeFrpcConfig(nil), configs...)
+		return nil
+	}
+	visitor, err := visitorSvc.JoinRoom(context.Background(), JoinRoomRequest{
+		RoomCode:   host.RoomCode,
+		DeviceName: "visitor-box",
+		BindAddr:   "127.0.0.1",
+		BindPort:   18080,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if visitor.RoomID != host.RoomID || visitor.Role != RoomRoleVisitor || !visitor.SecretKeySet {
+		t.Fatalf("unexpected visitor room view: %#v", visitor)
+	}
+	if len(visitorConfigs) != 1 {
+		t.Fatalf("expected one visitor config, got %#v", visitorConfigs)
+	}
+	for _, want := range []string{
+		`serverAddr = "frps.example.com"`,
+		`room_id = "` + host.RoomID + `"`,
+		`room_role = "visitor"`,
+		`[[visitors]]`,
+		`serverName = "` + host.ServerName + `"`,
+		`bindPort = 18080`,
+		`secretKey = "`,
+	} {
+		if !strings.Contains(visitorConfigs[0].Raw, want) {
+			t.Fatalf("visitor config missing %q:\n%s", want, visitorConfigs[0].Raw)
+		}
+	}
+
+	listed, err := visitorSvc.ListRoomRules()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(listed) != 1 || listed[0].RoomCode != "" || !listed[0].DeviceTokenSet {
+		t.Fatalf("unexpected listed room rules: %#v", listed)
+	}
+}
+
+func TestRoomMutationsPrevalidateBeforeRemoteCall(t *testing.T) {
+	var calls int
+	remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer remote.Close()
+
+	dir := t.TempDir()
+	svc, err := OpenService(filepath.Join(dir, "client.json"), "frpc.exe", filepath.Join(dir, "frpc"), WithServerBaseURL(remote.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	svc.verify = func(context.Context, string, string) error {
+		t.Fatal("verify should not run after local prevalidation failure")
+		return nil
+	}
+	svc.applyAll = func(context.Context, string, []runtimeFrpcConfig) error {
+		t.Fatal("apply should not run after local prevalidation failure")
+		return nil
+	}
+	if _, err := svc.CreateRoomHost(context.Background(), CreateRoomHostRequest{
+		Name:      "bad-host",
+		LocalIP:   "127.0.0.1",
+		LocalPort: 0,
+	}); err == nil {
+		t.Fatal("expected invalid host local port to fail")
+	}
+	if calls != 0 {
+		t.Fatalf("expected host prevalidation to avoid remote call, got %d", calls)
+	}
+
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	busyPort := ln.Addr().(*net.TCPAddr).Port
+	if _, err := svc.JoinRoom(context.Background(), JoinRoomRequest{
+		RoomCode: "room_prevalidate.secret",
+		BindAddr: "127.0.0.1",
+		BindPort: busyPort,
+	}); err == nil {
+		t.Fatal("expected busy visitor bind port to fail")
+	}
+	if calls != 0 {
+		t.Fatalf("expected visitor prevalidation to avoid remote call, got %d", calls)
+	}
+}
+
+func TestCreateRoomHostCleansRemoteRoomWhenLocalApplyFails(t *testing.T) {
+	controlSvc, err := control.OpenService(filepath.Join(t.TempDir(), "server.json"), control.WithFrpsEndpoint("frps.example.com", 7000))
+	if err != nil {
+		t.Fatal(err)
+	}
+	controlServer := httptest.NewServer(control.NewHandler(controlSvc))
+	defer controlServer.Close()
+
+	dir := t.TempDir()
+	svc, err := OpenService(filepath.Join(dir, "client.json"), "frpc.exe", filepath.Join(dir, "frpc"), WithServerBaseURL(controlServer.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	svc.verify = func(context.Context, string, string) error { return nil }
+	svc.applyAll = func(context.Context, string, []runtimeFrpcConfig) error {
+		return errors.New("apply failed")
+	}
+
+	_, err = svc.CreateRoomHost(context.Background(), CreateRoomHostRequest{
+		Name:      "cleanup-host",
+		LocalIP:   "127.0.0.1",
+		LocalPort: 8080,
+	})
+	if err == nil {
+		t.Fatal("expected local apply failure")
+	}
+	rules, err := svc.ListRoomRules()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rules) != 0 {
+		t.Fatalf("expected local rollback to remove room rule, got %#v", rules)
+	}
+	rooms, err := controlSvc.ListRooms()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rooms) != 0 {
+		t.Fatalf("expected remote room cleanup, got %#v", rooms)
+	}
+}
+
+func TestRoomLogsRedactSecrets(t *testing.T) {
+	controlSvc, err := control.OpenService(filepath.Join(t.TempDir(), "server.json"), control.WithFrpsEndpoint("frps.example.com", 7000))
+	if err != nil {
+		t.Fatal(err)
+	}
+	controlServer := httptest.NewServer(control.NewHandler(controlSvc))
+	defer controlServer.Close()
+
+	dir := t.TempDir()
+	svc, err := OpenService(filepath.Join(dir, "client.json"), "frpc.exe", filepath.Join(dir, "frpc"), WithServerBaseURL(controlServer.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	svc.verify = func(context.Context, string, string) error { return nil }
+	svc.applyAll = func(context.Context, string, []runtimeFrpcConfig) error { return nil }
+	host, err := svc.CreateRoomHost(context.Background(), CreateRoomHostRequest{
+		Name:      "redact-host",
+		LocalIP:   "127.0.0.1",
+		LocalPort: 8080,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := svc.store.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rule RoomRule
+	for _, candidate := range data.RoomRules {
+		rule = candidate
+		break
+	}
+	if rule.ID == "" {
+		t.Fatal("expected stored room rule")
+	}
+	logPath := logPathForNode(data, roomProcessID(rule.ID))
+	if err := os.MkdirAll(filepath.Dir(logPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	rawLog, _ := json.Marshal(map[string]string{
+		"roomCode":      host.RoomCode,
+		"deviceToken":   rule.DeviceToken,
+		"secretKey":     rule.SecretKey,
+		"adminPassword": data.Frpc.AdminPassword,
+	})
+	if err := os.WriteFile(logPath, rawLog, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	logs := svc.Logs()
+	for _, secret := range []string{host.RoomCode, rule.DeviceToken, rule.SecretKey, data.Frpc.AdminPassword} {
+		if secret != "" && strings.Contains(logs, secret) {
+			t.Fatalf("logs leaked secret %q in %s", secret, logs)
+		}
+	}
+	if !strings.Contains(logs, "[redacted]") {
+		t.Fatalf("expected redacted marker in logs, got %s", logs)
+	}
+}
+
+func TestRoomRulesSupportSTCPFallbackAndStunServer(t *testing.T) {
+	controlSvc, err := control.OpenService(filepath.Join(t.TempDir(), "server.json"), control.WithFrpsEndpoint("frps.example.com", 7000))
+	if err != nil {
+		t.Fatal(err)
+	}
+	controlServer := httptest.NewServer(control.NewHandler(controlSvc))
+	defer controlServer.Close()
+
+	hostDir := t.TempDir()
+	hostSvc, err := OpenService(filepath.Join(hostDir, "client.json"), "frpc.exe", filepath.Join(hostDir, "frpc"), WithServerBaseURL(controlServer.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	hostSvc.verify = func(context.Context, string, string) error { return nil }
+	var hostConfigs []runtimeFrpcConfig
+	hostSvc.applyAll = func(ctx context.Context, frpcPath string, configs []runtimeFrpcConfig) error {
+		hostConfigs = append([]runtimeFrpcConfig(nil), configs...)
+		return nil
+	}
+	host, err := hostSvc.CreateRoomHost(context.Background(), CreateRoomHostRequest{
+		Name:              "fallback-api",
+		DeviceName:        "host-box",
+		TunnelProtocol:    RoomTunnelSTCP,
+		NatHoleStunServer: "stun.example.com:3478",
+		LocalIP:           "127.0.0.1",
+		LocalPort:         8080,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if host.TunnelProtocol != RoomTunnelSTCP || host.NatHoleStunServer != "stun.example.com:3478" {
+		t.Fatalf("unexpected host view: %#v", host)
+	}
+	if len(hostConfigs) != 1 {
+		t.Fatalf("expected one host config, got %#v", hostConfigs)
+	}
+	for _, want := range []string{
+		`natHoleStunServer = "stun.example.com:3478"`,
+		`type = "stcp"`,
+		`name = "` + host.ServerName + `"`,
+	} {
+		if !strings.Contains(hostConfigs[0].Raw, want) {
+			t.Fatalf("host fallback config missing %q:\n%s", want, hostConfigs[0].Raw)
+		}
+	}
+
+	visitorDir := t.TempDir()
+	visitorSvc, err := OpenService(filepath.Join(visitorDir, "client.json"), "frpc.exe", filepath.Join(visitorDir, "frpc"), WithServerBaseURL(controlServer.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	visitorSvc.verify = func(context.Context, string, string) error { return nil }
+	var visitorConfigs []runtimeFrpcConfig
+	visitorSvc.applyAll = func(ctx context.Context, frpcPath string, configs []runtimeFrpcConfig) error {
+		visitorConfigs = append([]runtimeFrpcConfig(nil), configs...)
+		return nil
+	}
+	visitor, err := visitorSvc.JoinRoom(context.Background(), JoinRoomRequest{
+		RoomCode:          host.RoomCode,
+		DeviceName:        "visitor-box",
+		TunnelProtocol:    RoomTunnelSTCP,
+		NatHoleStunServer: "stun.example.com:3478",
+		BindAddr:          "127.0.0.1",
+		BindPort:          18081,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if visitor.TunnelProtocol != RoomTunnelSTCP {
+		t.Fatalf("unexpected visitor protocol: %#v", visitor)
+	}
+	for _, want := range []string{
+		`natHoleStunServer = "stun.example.com:3478"`,
+		`type = "stcp"`,
+		`name = "visitor.` + visitor.ID + `.stcp"`,
+		`serverName = "` + host.ServerName + `"`,
+	} {
+		if !strings.Contains(visitorConfigs[0].Raw, want) {
+			t.Fatalf("visitor fallback config missing %q:\n%s", want, visitorConfigs[0].Raw)
+		}
+	}
+	statuses, err := visitorSvc.ListRoomRuleStatuses()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(statuses) != 1 || statuses[0].Process.RoomRuleID != visitor.ID || statuses[0].Process.TunnelProtocol != RoomTunnelSTCP {
+		t.Fatalf("unexpected room status: %#v", statuses)
+	}
+	if statuses[0].Process.LocalEndpoint != "127.0.0.1:18081" {
+		t.Fatalf("unexpected local endpoint: %#v", statuses[0].Process)
+	}
+}
+
+func TestDetachedProcessStatusChecksPID(t *testing.T) {
+	pm := NewProcessManager("")
+	pm.processes[processKey("dead")] = &managedProcess{pid: 0, detached: true}
+	status := pm.StatusAll([]runtimeFrpcConfig{{NodeID: "dead", ConfigPath: "dead.toml"}})
+	if len(status.Nodes) != 1 {
+		t.Fatalf("expected one node status, got %#v", status)
+	}
+	if status.Nodes[0].Running {
+		t.Fatalf("expected dead detached process to be marked stopped: %#v", status.Nodes[0])
+	}
+	if status.Nodes[0].LastError == "" {
+		t.Fatalf("expected last error for dead detached process: %#v", status.Nodes[0])
+	}
+}
+
+func TestParseNatHoleDiscoverOutput(t *testing.T) {
+	var result NatHoleDiscoverResult
+	parseNatHoleOutput(&result, strings.Join([]string{
+		"STUN server: stun.easyvoip.com:3478",
+		"Your NAT type is: HardNAT",
+		"Behavior is: BehaviorPortChanged",
+		"External address is: [111.203.131.32:3658 111.203.131.32:3659]",
+		"Local address is: 10.7.24.208:56582",
+		"Public Network: false",
+	}, "\n"))
+	if result.StunServer != "stun.easyvoip.com:3478" || result.NatType != "HardNAT" || result.Behavior != "BehaviorPortChanged" {
+		t.Fatalf("unexpected parsed result: %#v", result)
+	}
+	if len(result.ExternalAddresses) != 2 || result.ExternalAddresses[0] != "111.203.131.32:3658" {
+		t.Fatalf("unexpected external addresses: %#v", result.ExternalAddresses)
+	}
+	if result.PublicNetwork == nil || *result.PublicNetwork {
+		t.Fatalf("unexpected public network flag: %#v", result.PublicNetwork)
 	}
 }

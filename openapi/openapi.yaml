@@ -3,8 +3,10 @@ info:
   title: frp UI Backend API
   version: 0.1.0
 servers:
+  - url: http://149.118.158.112:18080
+    description: Remote room control server
   - url: http://127.0.0.1:8080
-    description: Public control server
+    description: Local development control server
   - url: http://127.0.0.1:7410
     description: Windows local client backend
 paths:
@@ -44,6 +46,157 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JoinGroupResponse'
+  /v1/rooms:
+    get:
+      operationId: listRooms
+      tags: [control]
+      responses:
+        '200':
+          description: XTCP rooms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomView'
+    post:
+      operationId: createRoom
+      tags: [control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+      responses:
+        '201':
+          description: XTCP room created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateRoomResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/rooms/{roomId}:
+    get:
+      operationId: getRoom
+      tags: [control]
+      parameters:
+        - $ref: '#/components/parameters/roomId'
+      responses:
+        '200':
+          description: XTCP room
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomView'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      operationId: updateRoom
+      tags: [control]
+      parameters:
+        - $ref: '#/components/parameters/roomId'
+        - $ref: '#/components/parameters/xRoomId'
+        - $ref: '#/components/parameters/xRoomDeviceId'
+        - $ref: '#/components/parameters/xRoomDeviceToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoomRequest'
+      responses:
+        '200':
+          description: XTCP room updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomView'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Room device auth failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      operationId: deleteRoom
+      tags: [control]
+      parameters:
+        - $ref: '#/components/parameters/roomId'
+        - $ref: '#/components/parameters/xRoomId'
+        - $ref: '#/components/parameters/xRoomDeviceId'
+        - $ref: '#/components/parameters/xRoomDeviceToken'
+      responses:
+        '204':
+          description: XTCP room deleted
+        '401':
+          description: Room device auth failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/rooms/join:
+    post:
+      operationId: joinRoom
+      tags: [control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRoomRequest'
+      responses:
+        '200':
+          description: XTCP room joined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRoomResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid room code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /v1/nodes:
     get:
       operationId: listNodes
@@ -386,6 +539,136 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccessRoute'
+  /v1/client/rooms:
+    get:
+      operationId: clientListRoomRules
+      tags: [client]
+      responses:
+        '200':
+          description: Local XTCP/STCP room rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientRoomRuleView'
+  /v1/client/rooms/status:
+    get:
+      operationId: clientListRoomStatuses
+      tags: [client]
+      responses:
+        '200':
+          description: Local room rules with frpc process state
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientRoomRuleStatus'
+  /v1/client/rooms/host:
+    post:
+      operationId: clientCreateRoomHost
+      tags: [client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreateRoomHostRequest'
+      responses:
+        '201':
+          description: Local room host created and applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientRoomRuleView'
+  /v1/client/rooms/join:
+    post:
+      operationId: clientJoinRoom
+      tags: [client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientJoinRoomRequest'
+      responses:
+        '201':
+          description: Local room visitor created and applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientRoomRuleView'
+  /v1/client/rooms/{roomRuleId}:
+    patch:
+      operationId: clientPatchRoomRule
+      tags: [client]
+      parameters:
+        - $ref: '#/components/parameters/roomRuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientPatchRoomRuleRequest'
+      responses:
+        '200':
+          description: Local room rule updated and applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientRoomRuleView'
+    delete:
+      operationId: clientDeleteRoomRule
+      tags: [client]
+      parameters:
+        - $ref: '#/components/parameters/roomRuleId'
+      responses:
+        '204':
+          description: Local room rule deleted and applied
+  /v1/client/rooms/{roomRuleId}/doctor:
+    post:
+      operationId: clientDoctorRoomRule
+      tags: [client]
+      parameters:
+        - $ref: '#/components/parameters/roomRuleId'
+      responses:
+        '200':
+          description: Local room diagnostic result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientRoomDoctorResult'
+  /v1/client/network/interfaces:
+    get:
+      operationId: clientNetworkInterfaces
+      tags: [client]
+      responses:
+        '200':
+          description: Local IPv4 interfaces for XTCP diagnostics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NetworkInterfaceView'
+  /v1/client/xtcp/nathole/discover:
+    post:
+      operationId: clientDiscoverNatHole
+      tags: [client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NatHoleDiscoverRequest'
+      responses:
+        '200':
+          description: frpc nathole discover output
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NatHoleDiscoverResult'
   /v1/client/frpc/status:
     get:
       operationId: clientFrpcStatus
@@ -427,6 +710,12 @@ components:
       required: true
       schema:
         type: string
+    roomId:
+      name: roomId
+      in: path
+      required: true
+      schema:
+        type: string
     nodeId:
       name: nodeId
       in: path
@@ -441,6 +730,12 @@ components:
         type: string
     portId:
       name: portId
+      in: path
+      required: true
+      schema:
+        type: string
+    roomRuleId:
+      name: roomRuleId
       in: path
       required: true
       schema:
@@ -464,7 +759,32 @@ components:
       schema:
         type: string
       description: Bearer device token
+    xRoomId:
+      name: X-Room-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    xRoomDeviceId:
+      name: X-Room-Device-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    xRoomDeviceToken:
+      name: X-Room-Device-Token
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Room device token. Authorization bearer token is also accepted by the server when this header is omitted.
   schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
     CreateGroupRequest:
       type: object
       required: [groupId, password]
@@ -500,6 +820,95 @@ components:
         createdAt:
           type: string
           format: date-time
+    CreateRoomRequest:
+      type: object
+      required: [name, deviceName]
+      properties:
+        name:
+          type: string
+        deviceName:
+          type: string
+    RoomView:
+      type: object
+      required: [id, name, serverName, frpsAddr, frpsPort, enabled, memberCount]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        serverName:
+          type: string
+        hostDeviceId:
+          type: string
+        frpsAddr:
+          type: string
+        frpsPort:
+          type: integer
+        enabled:
+          type: boolean
+        memberCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RoomDeviceView:
+      type: object
+      required: [id, roomId, name, role, createdAt, lastSeenAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [host, visitor]
+        createdAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+    CreateRoomResponse:
+      type: object
+      required: [room, roomCode, device, deviceToken]
+      properties:
+        room:
+          $ref: '#/components/schemas/RoomView'
+        roomCode:
+          type: string
+        device:
+          $ref: '#/components/schemas/RoomDeviceView'
+        deviceToken:
+          type: string
+    JoinRoomRequest:
+      type: object
+      required: [roomCode, deviceName]
+      properties:
+        roomCode:
+          type: string
+        deviceName:
+          type: string
+    JoinRoomResponse:
+      type: object
+      required: [room, device, deviceToken]
+      properties:
+        room:
+          $ref: '#/components/schemas/RoomView'
+        device:
+          $ref: '#/components/schemas/RoomDeviceView'
+        deviceToken:
+          type: string
+    UpdateRoomRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
     CreateNodeRequest:
       type: object
       required: [name, serverAddr, frpsPort]
@@ -832,6 +1241,204 @@ components:
           type: integer
         fallbackBindPort:
           type: integer
+    ClientRoomRuleView:
+      type: object
+      required: [id, roomId, name, role, tunnelProtocol, serverName, serverAddr, serverPort, deviceId, deviceTokenSet, secretKeySet, enabled, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        roomCode:
+          type: string
+          description: Present only in host create responses. Treat as secret.
+        name:
+          type: string
+        role:
+          type: string
+          enum: [host, visitor]
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+          default: xtcp
+        natHoleStunServer:
+          type: string
+        serverName:
+          type: string
+        serverAddr:
+          type: string
+        serverPort:
+          type: integer
+        deviceId:
+          type: string
+        deviceTokenSet:
+          type: boolean
+        secretKeySet:
+          type: boolean
+        localIP:
+          type: string
+        localPort:
+          type: integer
+        bindAddr:
+          type: string
+        bindPort:
+          type: integer
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ClientCreateRoomHostRequest:
+      type: object
+      required: [name, localPort]
+      properties:
+        name:
+          type: string
+        deviceName:
+          type: string
+        serverBaseURL:
+          type: string
+          description: Optional override for private control-server deployments. Omit it in the normal frontend flow so the local backend uses the built-in remote control server.
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+          default: xtcp
+        natHoleStunServer:
+          type: string
+        localIP:
+          type: string
+          default: 127.0.0.1
+        localPort:
+          type: integer
+        enabled:
+          type: boolean
+          default: true
+    ClientJoinRoomRequest:
+      type: object
+      required: [roomCode, bindPort]
+      properties:
+        roomCode:
+          type: string
+        name:
+          type: string
+        deviceName:
+          type: string
+        serverBaseURL:
+          type: string
+          description: Optional override for private control-server deployments. Omit it in the normal frontend flow so the local backend uses the built-in remote control server.
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+          default: xtcp
+        natHoleStunServer:
+          type: string
+        bindAddr:
+          type: string
+          default: 127.0.0.1
+        bindPort:
+          type: integer
+        enabled:
+          type: boolean
+          default: true
+    ClientPatchRoomRuleRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+    ClientRoomRuleStatus:
+      type: object
+      required: [rule, process]
+      properties:
+        rule:
+          $ref: '#/components/schemas/ClientRoomRuleView'
+        process:
+          $ref: '#/components/schemas/FrpcNodeStatus'
+    NodeDoctorCheck:
+      type: object
+      required: [id, name, status, message]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [pass, warn, fail, skipped]
+        message:
+          type: string
+        durationMs:
+          type: integer
+          format: int64
+        details:
+          type: object
+          additionalProperties:
+            type: string
+    ClientRoomDoctorResult:
+      type: object
+      required: [rule, overall, checks]
+      properties:
+        rule:
+          $ref: '#/components/schemas/ClientRoomRuleView'
+        overall:
+          type: string
+          enum: [pass, warn, fail]
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeDoctorCheck'
+    NatHoleDiscoverRequest:
+      type: object
+      properties:
+        stunServer:
+          type: string
+        localAddr:
+          type: string
+          description: Diagnostic-only local UDP bind address, for example 10.7.24.208:0.
+    NatHoleDiscoverResult:
+      type: object
+      required: [success, rawOutput]
+      properties:
+        success:
+          type: boolean
+        stunServer:
+          type: string
+        natType:
+          type: string
+        behavior:
+          type: string
+        externalAddresses:
+          type: array
+          items:
+            type: string
+        localAddress:
+          type: string
+        publicNetwork:
+          type: boolean
+        rawOutput:
+          type: string
+        error:
+          type: string
+        durationMs:
+          type: integer
+          format: int64
+    NetworkInterfaceView:
+      type: object
+      required: [name, index, address, loopback, multicast]
+      properties:
+        name:
+          type: string
+        index:
+          type: integer
+        address:
+          type: string
+        loopback:
+          type: boolean
+        multicast:
+          type: boolean
     ClientState:
       type: object
       properties:
@@ -849,6 +1456,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PortRule'
+        roomRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientRoomRuleView'
     FrpcStatus:
       type: object
       properties:
@@ -859,6 +1470,40 @@ components:
         configPath:
           type: string
         lastError:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/FrpcNodeStatus'
+    FrpcNodeStatus:
+      type: object
+      required: [nodeId, running, configPath]
+      properties:
+        nodeId:
+          type: string
+        running:
+          type: boolean
+        pid:
+          type: integer
+        configPath:
+          type: string
+        logPath:
+          type: string
+        lastError:
+          type: string
+        roomRuleId:
+          type: string
+        roomId:
+          type: string
+        roomName:
+          type: string
+        roomRole:
+          type: string
+          enum: [host, visitor]
+        tunnelProtocol:
+          type: string
+          enum: [xtcp, stcp]
+        localEndpoint:
           type: string
     PluginDecision:
       type: object

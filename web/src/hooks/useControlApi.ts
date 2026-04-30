@@ -11,11 +11,32 @@ type AccessRoute = components['schemas']['AccessRoute'];
 type CreateGroupRequest = components['schemas']['CreateGroupRequest'];
 type JoinGroupRequest = components['schemas']['JoinGroupRequest'];
 type JoinGroupResponse = components['schemas']['JoinGroupResponse'];
+export type RoomView = components['schemas']['RoomView'];
+export type RoomDeviceView = components['schemas']['RoomDeviceView'];
+export type CreateRoomRequest = components['schemas']['CreateRoomRequest'];
+export type CreateRoomResponse = components['schemas']['CreateRoomResponse'];
+export type JoinRoomRequest = components['schemas']['JoinRoomRequest'];
+export type JoinRoomResponse = components['schemas']['JoinRoomResponse'];
+export type UpdateRoomRequest = components['schemas']['UpdateRoomRequest'];
 type CreateNodeRequest = components['schemas']['CreateNodeRequest'];
 type CreatePrivateExposureRequest = components['schemas']['CreatePrivateExposureRequest'];
 type CreatePublicExposureRequest = components['schemas']['CreatePublicExposureRequest'];
 type UpdateExposureRequest = components['schemas']['UpdateExposureRequest'];
 type CreateAccessRouteRequest = components['schemas']['CreateAccessRouteRequest'];
+
+export type RoomAuthHeaders = {
+  roomId: string;
+  deviceId: string;
+  deviceToken: string;
+};
+
+function roomAuthHeaders(auth: RoomAuthHeaders) {
+  return {
+    'X-Room-ID': auth.roomId,
+    'X-Room-Device-ID': auth.deviceId,
+    'X-Room-Device-Token': auth.deviceToken,
+  };
+}
 
 export function useCreateGroup() {
   const qc = useQueryClient();
@@ -34,6 +55,59 @@ export function useJoinGroup() {
       const res = await controlApi.post(`/v1/groups/${groupId}/join`, body);
       return res.data;
     },
+  });
+}
+
+export function useListRooms() {
+  return useQuery<RoomView[]>({
+    queryKey: ['rooms'],
+    queryFn: async () => {
+      const res = await controlApi.get('/v1/rooms');
+      return res.data;
+    },
+  });
+}
+
+export function useCreateRoom() {
+  const qc = useQueryClient();
+  return useMutation<CreateRoomResponse, Error, CreateRoomRequest>({
+    mutationFn: async (body) => {
+      const res = await controlApi.post('/v1/rooms', body);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['rooms'] }),
+  });
+}
+
+export function useJoinRoom() {
+  const qc = useQueryClient();
+  return useMutation<JoinRoomResponse, Error, JoinRoomRequest>({
+    mutationFn: async (body) => {
+      const res = await controlApi.post('/v1/rooms/join', body);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['rooms'] }),
+  });
+}
+
+export function useUpdateRoom() {
+  const qc = useQueryClient();
+  return useMutation<RoomView, Error, { roomId: string; auth: RoomAuthHeaders; body: UpdateRoomRequest }>({
+    mutationFn: async ({ roomId, auth, body }) => {
+      const res = await controlApi.patch(`/v1/rooms/${roomId}`, body, { headers: roomAuthHeaders(auth) });
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['rooms'] }),
+  });
+}
+
+export function useDeleteRoom() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, { roomId: string; auth: RoomAuthHeaders }>({
+    mutationFn: async ({ roomId, auth }) => {
+      await controlApi.delete(`/v1/rooms/${roomId}`, { headers: roomAuthHeaders(auth) });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['rooms'] }),
   });
 }
 

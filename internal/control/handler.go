@@ -143,6 +143,74 @@ func NewHandler(svc *Service) http.Handler {
 		httpx.JSON(w, http.StatusCreated, resp)
 	})
 
+	mux.HandleFunc("GET /v1/rooms", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.ListRooms()
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("POST /v1/rooms", func(w http.ResponseWriter, r *http.Request) {
+		var req CreateRoomRequest
+		if err := httpx.Decode(r, &req); err != nil {
+			httpx.HandleError(w, httpx.BadRequest(err.Error()))
+			return
+		}
+		resp, err := svc.CreateRoom(req)
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusCreated, resp)
+	})
+
+	mux.HandleFunc("POST /v1/rooms/join", func(w http.ResponseWriter, r *http.Request) {
+		var req JoinRoomRequest
+		if err := httpx.Decode(r, &req); err != nil {
+			httpx.HandleError(w, httpx.BadRequest(err.Error()))
+			return
+		}
+		resp, err := svc.JoinRoom(req)
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("GET /v1/rooms/{roomId}", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := svc.GetRoom(r.PathValue("roomId"))
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("PATCH /v1/rooms/{roomId}", func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateRoomRequest
+		if err := httpx.Decode(r, &req); err != nil {
+			httpx.HandleError(w, httpx.BadRequest(err.Error()))
+			return
+		}
+		resp, err := svc.UpdateRoom(r.PathValue("roomId"), roomAuthFromHeaders(r), req)
+		if err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.JSON(w, http.StatusOK, resp)
+	})
+
+	mux.HandleFunc("DELETE /v1/rooms/{roomId}", func(w http.ResponseWriter, r *http.Request) {
+		if err := svc.DeleteRoom(r.PathValue("roomId"), roomAuthFromHeaders(r)); err != nil {
+			httpx.HandleError(w, err)
+			return
+		}
+		httpx.Empty(w, http.StatusNoContent)
+	})
+
 	mux.HandleFunc("POST /internal/frps/plugin", func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		raw, err := io.ReadAll(r.Body)
@@ -171,6 +239,21 @@ func authFromHeaders(r *http.Request) DeviceAuth {
 	return DeviceAuth{
 		GroupID:     r.Header.Get("X-Group-ID"),
 		DeviceID:    r.Header.Get("X-Device-ID"),
+		DeviceToken: token,
+	}
+}
+
+func roomAuthFromHeaders(r *http.Request) RoomDeviceAuth {
+	token := r.Header.Get("X-Room-Device-Token")
+	if token == "" {
+		authz := r.Header.Get("Authorization")
+		if strings.HasPrefix(strings.ToLower(authz), "bearer ") {
+			token = strings.TrimSpace(authz[len("bearer "):])
+		}
+	}
+	return RoomDeviceAuth{
+		RoomID:      r.Header.Get("X-Room-ID"),
+		DeviceID:    r.Header.Get("X-Room-Device-ID"),
 		DeviceToken: token,
 	}
 }

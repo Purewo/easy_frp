@@ -6,7 +6,7 @@ This document is the frontend contract for the current product direction: expose
 http://127.0.0.1:7410
 ```
 
-The OpenAPI source for this UI flow is [openapi/local-client.yaml](../openapi/local-client.yaml). The older control-server/group/room APIs are legacy for now and should not drive the new UI.
+The OpenAPI source for this UI flow is [openapi/local-client.yaml](../openapi/local-client.yaml). XTCP/STCP room mode still uses the separated control-server model documented in [docs/client-server-rooms.md](client-server-rooms.md), but the local backend now exposes room-rule and NAT-diagnostic APIs under `/v1/client/rooms...` so the frontend can manage local frpc processes without shelling out directly. The built-in room control server for the current development environment is `http://149.118.158.112:18080`.
 
 ## Product Flow
 
@@ -18,6 +18,27 @@ The OpenAPI source for this UI flow is [openapi/local-client.yaml](../openapi/lo
 
 Multi-node behavior: the backend stores multiple frps nodes and runs one local frpc process per active `nodeId`. Enabled rules can therefore run on different frps servers at the same time. Each node gets its own generated config file, admin port, process state, and log file.
 
+## XTCP/STCP Room UI Integration
+
+The frontend should keep two API clients for room mode:
+
+| Client | Base URL | Responsibility |
+| --- | --- | --- |
+| `controlApi` | `http://149.118.158.112:18080` | Server-side room records and room management APIs under `/v1/rooms...`. |
+| `clientApi` | `http://127.0.0.1:7410` | This computer's local room rules, frpc lifecycle, and NAT diagnostics under `/v1/client/rooms...`. |
+
+Do not point the frontend at a local control server on `127.0.0.1:8080` for current development. The remote control server is built into the backend/frontend defaults; the local backend still runs on `127.0.0.1:7410`.
+
+Use this mapping in the UI:
+
+- Global room list: `controlApi.get("/v1/rooms")`.
+- Host current machine's port into a room: `clientApi.post("/v1/client/rooms/host", { name, deviceName, localIP, localPort, tunnelProtocol, natHoleStunServer })`.
+- Join from a room code on this machine: `clientApi.post("/v1/client/rooms/join", { roomCode, deviceName, bindAddr, bindPort, tunnelProtocol, natHoleStunServer })`.
+- Local room runtime state: `clientApi.get("/v1/client/rooms/status")`.
+- Local NAT checks: `clientApi.get("/v1/client/network/interfaces")`, `clientApi.post("/v1/client/xtcp/nathole/discover", ...)`, and `clientApi.post("/v1/client/rooms/{roomRuleId}/doctor")`.
+
+Leave `serverBaseURL` empty in normal host/join requests. It is an optional override for private deployments; when omitted, the local backend uses the built-in remote control server. `GET /v1/rooms` and `GET /v1/client/rooms/status` are intentionally different lists: the first is remote room metadata, while the second is only this local machine's running or configured room rules.
+
 ## Start Backend
 
 ```powershell
@@ -27,6 +48,7 @@ $env:FRP_PANEL_FRPS_TOKEN='<frps auth token>'
   --data .\data\client.json `
   --frpc .\frp_0.68.1_windows_amd64\frpc.exe `
   --workdir .\data\frpc `
+  --server http://149.118.158.112:18080 `
   --frps-host 149.118.158.112 `
   --frps-port 7000 `
   --web-base-domain ma1.gameuniverse.top `
