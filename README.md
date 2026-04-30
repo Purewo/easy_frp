@@ -9,7 +9,7 @@ It contains two HTTP services:
 
 Frontend work for the current direct-port UI should use [docs/local-client-api.md](docs/local-client-api.md) and [openapi/local-client.yaml](openapi/local-client.yaml). The older combined API contract remains in [openapi/openapi.yaml](openapi/openapi.yaml) for legacy control-server flows.
 
-Current release: [v0.2.0](docs/releases/v0.2.0.md). XTCP room mode is documented in [docs/client-server-rooms.md](docs/client-server-rooms.md).
+Current release: [v0.2.0](docs/releases/v0.2.0.md). XTCP room mode is documented in [docs/client-server-rooms.md](docs/client-server-rooms.md). The next development target is temporary virtual LAN rooms; start from [docs/next-virtual-lan.md](docs/next-virtual-lan.md).
 
 ## Build
 
