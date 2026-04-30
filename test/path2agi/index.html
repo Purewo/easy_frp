@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>Path2AGI Reader | 通往通用人工智能的知识星图 - 29学科跨学科AI阅读器</title>
+    <meta name="description" content="Path2AGI Reader 是一个优雅的Web阅读器，让跨学科AI知识更易触达。收录29个学科：数学、计算系统、认知科学、决策博弈、物理哲学、AI伦理、社会人文等。点点星光，也能点亮夜空。">
+    <meta name="keywords" content="Path2AGI, AI, 人工智能, 跨学科, 机器学习, 深度学习, AGI, 知识图谱, Datawhale, 阅读器, 学习资源">
+    <meta name="author" content="Path2AGI Community">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://purewo.github.io/path2agi-reader/">
+    <meta property="og:title" content="Path2AGI Reader | 通往通用人工智能的知识星图">
+    <meta property="og:description" content="优雅的跨学科AI知识阅读器，收录29个学科。让知识触手可及，让学习成为享受。">
+    <meta property="og:image" content="https://purewo.github.io/path2agi-reader/og-image.png">
+    <meta property="og:site_name" content="Path2AGI Reader">
+    
+    <!-- Twitter Card -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://purewo.github.io/path2agi-reader/">
+    <meta property="twitter:title" content="Path2AGI Reader | 通往通用人工智能的知识星图">
+    <meta property="twitter:description" content="优雅的跨学科AI知识阅读器，收录29个学科。让知识触手可及，让学习成为享受。">
+    <meta property="twitter:image" content="https://purewo.github.io/path2agi-reader/og-image.png">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://purewo.github.io/path2agi-reader/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGF0aDJBR0kgUmVhZGVyIiwic2hvcnRfbmFtZSI6IlBhdGgyQUdJIiwiZGVzY3JpcHRpb24iOiLnvZHnu5zlronquIjmoYhBSeWHoOeJqeW5v+S4reWkp+WwvCIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMDUwNTA4IiwidGhlbWVfY29sb3IiOiIjMjJkM2VlIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjRiV3h1Y3owaWFIUjBjSE02TDJWNFlXMXdiR1V1WTI5dEwyVjRZVzF3YkdVdFkyOXVkR1Z1ZEM5emVYTjBaVzB1YzJkbGNqcHpaVzV6ZEdWa0lIZzlJakV3TWpBd0xqQXdNREF3TURBd01EQWlJRzUxYldWeVpXUmZkSGx3WlQwaVgybGtJaUI0Yld4dWN6MGlhSFIwY0hNNkx5VjRZVzF3YkdVdVkyOXRMekF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXdNREF3TURBd01EQXVZM0psWVdRdVkyOXRMeUl2UGp4emRtY2dlRzFzYm5NOUltRjFkR2d2Y0hWaWJHbHphQzl6ZG1jaUx6NDhjM1Z5YkQ1R2FXVnNaU0F0SUdseklHRnVaQ0J6YVdSbExnPT0iLCJzaXplcyI6IjE5MngxOTIifV19">
+    
+    <!-- Apple Touch Icon -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Path2AGI">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23050508' width='180' height='180' rx='20'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='100'>✨</text></svg>">
+    
+    <!-- Theme Color for Mobile -->
+    <meta name="theme-color" content="#050508">
+    <meta name="msapplication-TileColor" content="#050508">
+    
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <style>
+        :root {
+            --void: #050508;
+            --deep-space: #0a0a0f;
+            --nebula: #12121a;
+            --star-white: #f0f0f5;
+            --cosmic-gold: #ffd700;
+            --nebula-blue: #6366f1;
+            --stellar-cyan: #22d3ee;
+            --aurora-pink: #f472b6;
+            --galaxy-purple: #a855f7;
+            --meteor-orange: #fb923c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background: var(--void);
+            color: var(--star-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* 加载动画 */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--void);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .loading-content {
+            text-align: center;
+            position: relative;
+        }
+        .loading-starfield {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            pointer-events: none;
+        }
+        .loading-star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: loadingTwinkle 1.5s infinite ease-in-out;
+        }
+        @keyframes loadingTwinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.5); box-shadow: 0 0 10px var(--stellar-cyan); }
+        }
+        .loading-text {
+            position: relative;
+            z-index: 1;
+        }
+        .loading-title {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--cosmic-gold), var(--stellar-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+            margin-bottom: 16px;
+            animation: loadingPulse 2s infinite ease-in-out;
+        }
+        @keyframes loadingPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .loading-subtitle {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: rgba(240, 240, 245, 0.5);
+            letter-spacing: 2px;
+        }
+        .loading-progress {
+            width: 200px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin: 30px auto 0;
+            overflow: hidden;
+        }
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--stellar-cyan), var(--cosmic-gold));
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--stellar-cyan);
+        }
+
+        /* 星空背景 */
+        .starfield {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+        .star {
+            position: absolute; background: white; border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 导航 */
+        .navigation {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: linear-gradient(to bottom, var(--void) 60%, transparent);
+            padding: 20px 0; backdrop-filter: blur(10px);
+        }
+        .nav-inner {
+            max-width: 1400px; margin: 0 auto; padding: 0 24px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo {
+            font-family: 'Space Mono', monospace; font-size: 1.4rem; font-weight: 700;
+            background: linear-gradient(90deg, var(--cosmic-gold), var(--stellar-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            letter-spacing: 2px; cursor: pointer;
+        }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a {
+            font-family: 'Space Mono', monospace; font-size: 0.85rem;
+            color: rgba(240, 240, 245, 0.7); text-decoration: none;
+            transition: all 0.3s ease; position: relative; cursor: pointer;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px;
+            background: var(--stellar-cyan); transition: width 0.3s ease;
+        }
+        .nav-links a:hover { color: var(--star-white); }
+        .nav-links a:hover::after { width: 100%; }
+
+        /* 移动端菜单按钮 */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--star-white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        /* 主容器 */
+        .universe { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+        /* 英雄区 */
+        .hero {
+            min-height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 120px 0 80px; position: relative;
+        }
+        .hero-badge {
+            font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 4px;
+            text-transform: uppercase; color: var(--stellar-cyan);
+            border: 1px solid rgba(34, 211, 238, 0.3); padding: 8px 20px;
+            border-radius: 100px; margin-bottom: 40px;
+            animation: pulse 4s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(34, 211, 238, 0.3); }
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 700; line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(180deg, var(--star-white) 0%, rgba(240, 240, 245, 0.7) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            letter-spacing: -1px;
+        }
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.5rem); color: rgba(240, 240, 245, 0.6);
+            max-width: 700px; margin-bottom: 60px; font-style: italic;
+        }
+        .hero-stats { display: flex; gap: 60px; margin-bottom: 60px; }
+        .stat { text-align: center; }
+        .stat-number {
+            font-family: 'Space Mono', monospace; font-size: 3rem; font-weight: 700;
+            color: var(--cosmic-gold); display: block;
+        }
+        .stat-label {
+            font-family: 'Space Mono', monospace; font-size: 0.8rem;
+            color: rgba(240, 240, 245, 0.5); text-transform: uppercase; letter-spacing: 2px;
+        }
+        .scroll-indicator {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+        .scroll-indicator::before {
+            content: '↓'; font-family: 'Space Mono', monospace;
+            color: var(--stellar-cyan); font-size: 1.5rem;
+        }
+
+        /* 章节标题 */
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-eyebrow {
+            font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 4px;
+            text-transform: uppercase; color: var(--aurora-pink); margin-bottom: 16px; display: block;
+        }
+        .section-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; margin-bottom: 16px; }
+        .section-desc { font-size: 1.1rem; color: rgba(240, 240, 245, 0.6); max-width: 600px; margin: 0 auto; }
+
+        /* 分类筛选胶囊导航 */
+        .category-filter {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 30px auto 40px;
+            max-width: 900px;
+            padding: 0 20px;
+        }
+        .filter-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            color: rgba(240, 240, 245, 0.6);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+        .filter-pill:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(240, 240, 245, 0.9);
+            transform: translateY(-2px);
+        }
+        .filter-pill.active {
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(99, 102, 241, 0.2));
+            border-color: var(--stellar-cyan);
+            color: var(--stellar-cyan);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+        }
+        .filter-pill[data-category="math"].active {
+            border-color: #6366f1;
+            color: #818cf8;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1));
+        }
+        .filter-pill[data-category="computing"].active {
+            border-color: #22d3ee;
+            color: #67e8f9;
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(34, 211, 238, 0.1));
+        }
+        .filter-pill[data-category="cognitive"].active {
+            border-color: #f472b6;
+            color: #f9a8d4;
+            background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(244, 114, 182, 0.1));
+        }
+        .filter-pill[data-category="decision"].active {
+            border-color: #fb923c;
+            color: #fdba74;
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.1));
+        }
+        .filter-pill[data-category="physics"].active {
+            border-color: #a855f7;
+            color: #c084fc;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.1));
+        }
+        .filter-pill[data-category="ethics"].active {
+            border-color: #ef4444;
+            color: #f87171;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+        }
+        .filter-pill[data-category="social"].active {
+            border-color: #14b8a6;
+            color: #2dd4bf;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.1));
+        }
+        .category-hidden {
+            display: none !important;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            max-width: 500px;
+            margin: 0 auto 30px;
+            padding: 0 20px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            color: var(--star-white);
+            font-size: 1rem;
+            font-family: 'Crimson Text', serif;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .search-input::placeholder {
+            color: rgba(240, 240, 245, 0.4);
+        }
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--stellar-cyan);
+            box-shadow: 0 0 30px rgba(34, 211, 238, 0.1);
+        }
+
+        /* 分页控件 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 40px;
+            padding: 0 20px;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            min-width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: rgba(240, 240, 245, 0.7);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            padding: 0 16px;
+        }
+        .page-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--star-white);
+            transform: translateY(-2px);
+        }
+        .page-btn.active {
+            background: linear-gradient(135deg, var(--stellar-cyan), var(--nebula-blue));
+            border-color: transparent;
+            color: var(--void);
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+        }
+        .page-btn.prev, .page-btn.next {
+            padding: 0 20px;
+            font-size: 0.85rem;
+        }
+        .page-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .page-info {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: rgba(240, 240, 245, 0.4);
+            padding: 0 16px;
+        }
+
+        /* 星图区 */
+        .constellation-section { padding: 100px 0; position: relative; }
+        .constellation-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;
+            max-width: 1200px; margin: 0 auto;
+        }
+        @media (max-width: 1200px) { .constellation-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .constellation-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        /* 学科卡片 */
+        .subject-card {
+            background: linear-gradient(135deg, rgba(18, 18, 26, 0.8), rgba(10, 10, 15, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px;
+            padding: 24px; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
+        }
+        .subject-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--category-color), transparent); opacity: 0.6;
+        }
+        .subject-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--category-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 60px var(--glow-color);
+        }
+        .subject-number { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: rgba(240, 240, 245, 0.4); margin-bottom: 8px; }
+        .subject-name { font-size: 1.1rem; font-weight: 600; color: var(--star-white); margin-bottom: 12px; line-height: 1.4; }
+        .subject-meta { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: rgba(240, 240, 245, 0.5); display: flex; align-items: center; gap: 8px; }
+        .subject-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--category-color); }
+
+        .category-math { --category-color: #6366f1; --glow-color: rgba(99, 102, 241, 0.2); }
+        .category-computing { --category-color: #22d3ee; --glow-color: rgba(34, 211, 238, 0.2); }
+        .category-cognitive { --category-color: #f472b6; --glow-color: rgba(244, 114, 182, 0.2); }
+        .category-decision { --category-color: #fb923c; --glow-color: rgba(251, 146, 60, 0.2); }
+        .category-physics { --category-color: #a855f7; --glow-color: rgba(168, 85, 247, 0.2); }
+        .category-ethics { --category-color: #ef4444; --glow-color: rgba(239, 68, 68, 0.2); }
+        .category-social { --category-color: #14b8a6; --glow-color: rgba(20, 184, 166, 0.2); }
+
+        /* 图例 */
+        .legend { display: flex; justify-content: center; gap: 32px; margin-top: 40px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace; font-size: 0.8rem; color: rgba(240, 240, 245, 0.7); }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* 阅读器遮罩 */
+        .reader-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 5, 8, 0.98);
+            z-index: 1000; display: none; flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+        .reader-overlay.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .reader-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 40px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(5, 5, 8, 0.8); backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+        .reader-title {
+            font-family: 'Space Mono', monospace; font-size: 0.95rem; color: var(--stellar-cyan);
+        }
+        .reader-close {
+            background: none; border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--star-white); padding: 6px 16px; border-radius: 6px;
+            cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .reader-close:hover { border-color: var(--stellar-cyan); color: var(--stellar-cyan); }
+
+        .reader-content {
+            flex: 1; overflow-y: auto; padding: 40px 60px 40px 300px;
+        }
+        @media (max-width: 1200px) {
+            .reader-content {
+                padding-left: 20px;
+            }
+        }
+        .reader-content::-webkit-scrollbar { width: 6px; }
+        .reader-content::-webkit-scrollbar-track { background: transparent; }
+        .reader-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+        .reader-content::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .reader-body-wrapper {
+            max-width: 800px; margin: 0 auto;
+        }
+
+        /* 浮动目录 - 左侧 */
+        .floating-toc {
+            position: fixed; left: 20px; top: 50%; transform: translateY(-50%);
+            width: 260px; max-height: 80vh;
+            background: rgba(18, 18, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px; padding: 20px;
+            overflow-y: auto; z-index: 1001;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .floating-toc.visible {
+            opacity: 1; visibility: visible;
+        }
+        .floating-toc.hidden {
+            opacity: 0; visibility: hidden;
+            transform: translateY(-50%) translateX(-100px);
+        }
+        .floating-toc::-webkit-scrollbar { width: 3px; }
+        .floating-toc::-webkit-scrollbar-track { background: transparent; }
+        .floating-toc::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
+        .floating-toc-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .floating-toc-title {
+            font-family: 'Space Mono', monospace; font-size: 0.75rem;
+            color: rgba(240, 240, 245, 0.5); text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .toc-collapse-btn {
+            background: none; border: none; cursor: pointer;
+            color: rgba(240, 240, 245, 0.5);
+            font-size: 0.9rem; padding: 4px;
+            transition: all 0.2s ease;
+        }
+        .toc-collapse-btn:hover {
+            color: var(--stellar-cyan);
+            transform: scale(1.1);
+        }
+
+        /* 显示目录按钮（在阅读器标题栏） */
+        .toc-show-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: rgba(240, 240, 245, 0.8);
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .toc-show-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--stellar-cyan);
+            border-color: var(--stellar-cyan);
+        }
+
+        /* 目录项 */
+        .toc-item {
+            border-radius: 8px; cursor: pointer;
+            font-size: 0.85rem; color: rgba(240, 240, 245, 0.55);
+            transition: all 0.2s ease; line-height: 1.4;
+            overflow: hidden;
+        }
+        .toc-item:hover {
+            color: rgba(240, 240, 245, 0.9);
+        }
+
+        /* 目录头部可点击区域 */
+        .toc-header {
+            display: flex; align-items: center;
+            padding: 8px 10px; gap: 8px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .toc-item:hover .toc-header {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* 高亮效果 - 炫酷版 */
+        .toc-item.active .toc-header {
+            background: linear-gradient(90deg, rgba(34, 211, 238, 0.15), rgba(99, 102, 241, 0.1));
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.2), inset 3px 0 0 var(--stellar-cyan);
+            border-radius: 0 8px 8px 0;
+        }
+        .toc-item.active {
+            color: var(--stellar-cyan);
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+        }
+        .toc-item.toc-h2.active {
+            color: rgba(244, 114, 182, 0.9);
+            text-shadow: 0 0 10px rgba(244, 114, 182, 0.4);
+        }
+        .toc-item.toc-h2.active .toc-header {
+            background: linear-gradient(90deg, rgba(244, 114, 182, 0.12), transparent);
+            box-shadow: 0 0 15px rgba(244, 114, 182, 0.15), inset 3px 0 0 var(--aurora-pink);
+        }
+        .toc-item.toc-h3.active {
+            color: rgba(251, 146, 60, 0.85);
+        }
+        .toc-item.toc-h3.active .toc-header {
+            background: linear-gradient(90deg, rgba(251, 146, 60, 0.1), transparent);
+            box-shadow: inset 3px 0 0 var(--meteor-orange);
+        }
+
+        /* 展开折叠按钮 */
+        .toc-toggle {
+            width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; color: rgba(240, 240, 245, 0.3);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+        .toc-toggle:hover {
+            color: rgba(240, 240, 245, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .toc-toggle.expanded {
+            transform: rotate(90deg);
+            color: var(--stellar-cyan);
+        }
+
+        /* 目录文字 */
+        .toc-text {
+            flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* 层级缩进 */
+        .toc-item.toc-h1 > .toc-header { font-weight: 600; font-size: 0.9rem; padding-left: 0; }
+        .toc-item.toc-h2 > .toc-header { padding-left: 16px; font-size: 0.82rem; }
+        .toc-item.toc-h3 > .toc-header { padding-left: 32px; font-size: 0.76rem; color: rgba(240, 240, 245, 0.45); }
+
+        /* 子目录容器 */
+        .toc-children {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toc-children.expanded {
+            max-height: 2000px;
+        }
+
+        /* Markdown 渲染样式 */
+        .markdown-body {
+            font-size: 1.05rem; line-height: 1.8; color: rgba(240, 240, 245, 0.9);
+        }
+        .markdown-body h1 {
+            font-size: 2.2rem; font-weight: 700; margin: 40px 0 24px;
+            color: var(--star-white); padding-bottom: 16px;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+        }
+        .markdown-body h2 {
+            font-size: 1.6rem; font-weight: 700; margin: 32px 0 16px;
+            color: var(--stellar-cyan);
+        }
+        .markdown-body h3 {
+            font-size: 1.3rem; font-weight: 600; margin: 24px 0 12px;
+            color: rgba(240, 240, 245, 0.95);
+        }
+        .markdown-body h4 {
+            font-size: 1.1rem; font-weight: 600; margin: 20px 0 10px;
+            color: rgba(240, 240, 245, 0.9);
+        }
+        .markdown-body p { margin: 12px 0; }
+        .markdown-body ul, .markdown-body ol { margin: 12px 0; padding-left: 28px; }
+        .markdown-body li { margin: 8px 0; }
+        .markdown-body blockquote {
+            margin: 20px 0; padding: 16px 24px;
+            border-left: 3px solid var(--cosmic-gold);
+            background: rgba(255, 215, 0, 0.05); border-radius: 0 8px 8px 0;
+            font-style: italic; color: rgba(240, 240, 245, 0.8);
+        }
+        .markdown-body code {
+            font-family: 'Space Mono', monospace; font-size: 0.9em;
+            background: rgba(255, 255, 255, 0.08); padding: 2px 8px;
+            border-radius: 4px; color: var(--aurora-pink);
+        }
+        .markdown-body pre {
+            background: rgba(10, 10, 15, 0.8); padding: 20px; border-radius: 12px;
+            overflow-x: auto; margin: 16px 0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .markdown-body pre code {
+            background: none; padding: 0; color: rgba(240, 240, 245, 0.85);
+        }
+        .markdown-body a {
+            color: var(--stellar-cyan); text-decoration: none;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.3);
+            transition: all 0.3s ease;
+        }
+        .markdown-body a:hover {
+            border-bottom-color: var(--stellar-cyan);
+        }
+        .markdown-body hr {
+            border: none; border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 32px 0;
+        }
+        .markdown-body table {
+            width: 100%; border-collapse: collapse; margin: 20px 0;
+        }
+        .markdown-body th, .markdown-body td {
+            padding: 12px 16px; text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .markdown-body th {
+            font-weight: 600; color: var(--stellar-cyan);
+            background: rgba(34, 211, 238, 0.05);
+        }
+        .markdown-body tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .markdown-body img {
+            max-width: 100%; border-radius: 8px; margin: 16px 0;
+        }
+        .markdown-body .frontmatter {
+            background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px; padding: 20px; margin-bottom: 32px;
+            font-family: 'Space Mono', monospace; font-size: 0.85rem;
+        }
+        .markdown-body .frontmatter-item {
+            display: flex; margin: 6px 0;
+        }
+        .markdown-body .frontmatter-key {
+            color: var(--nebula-blue); min-width: 100px;
+        }
+        .markdown-body .frontmatter-value {
+            color: rgba(240, 240, 245, 0.8);
+        }
+
+        /* 核心列表 */
+        .core-section { padding: 100px 0; }
+        .core-list { max-width: 900px; margin: 0 auto; }
+        .core-item {
+            display: flex; align-items: flex-start; gap: 24px;
+            padding: 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        .core-item:hover { background: rgba(255, 255, 255, 0.02); border-radius: 12px; }
+        .core-number {
+            font-family: 'Space Mono', monospace; font-size: 1.5rem;
+            font-weight: 700; color: var(--cosmic-gold); min-width: 40px;
+        }
+        .core-content h3 { font-size: 1.2rem; margin-bottom: 8px; color: var(--star-white); }
+        .core-content p { color: rgba(240, 240, 245, 0.6); font-size: 0.95rem; }
+        .core-tag {
+            display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.7rem;
+            padding: 4px 10px; border-radius: 100px; margin-top: 12px;
+            background: rgba(255, 215, 0, 0.1); color: var(--cosmic-gold);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        /* 时间线 */
+        .timeline-section { padding: 100px 0; background: linear-gradient(180deg, transparent, rgba(168, 85, 247, 0.03), transparent); }
+        .timeline { max-width: 800px; margin: 0 auto; position: relative; }
+        .timeline::before {
+            content: ''; position: absolute; left: 50%; transform: translateX(-50%);
+            width: 2px; height: 100%;
+            background: linear-gradient(180deg, var(--nebula-blue), var(--galaxy-purple), transparent);
+        }
+        .timeline-item { display: flex; margin-bottom: 40px; position: relative; }
+        .timeline-item:nth-child(odd) { justify-content: flex-start; }
+        .timeline-item:nth-child(even) { justify-content: flex-end; }
+        .timeline-content {
+            width: 45%; padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(18, 18, 26, 0.8), rgba(10, 10, 15, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; position: relative;
+        }
+        .timeline-year { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--stellar-cyan); margin-bottom: 8px; }
+        .timeline-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+        .timeline-desc { font-size: 0.9rem; color: rgba(240, 240, 245, 0.6); }
+        .timeline-dot {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 16px; background: var(--galaxy-purple);
+            border-radius: 50%; border: 3px solid var(--void);
+            box-shadow: 0 0 20px var(--galaxy-purple);
+        }
+
+        /* 底部 */
+        .footer {
+            padding: 60px 0; text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 60px;
+        }
+        .footer-logo {
+            font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700;
+            background: linear-gradient(90deg, var(--cosmic-gold), var(--stellar-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin-bottom: 16px;
+        }
+        .footer-desc { color: rgba(240, 240, 245, 0.5); font-size: 0.9rem; margin-bottom: 24px; }
+        .footer-links { display: flex; justify-content: center; gap: 32px; margin-bottom: 32px; }
+        .footer-links a {
+            font-family: 'Space Mono', monospace; font-size: 0.8rem;
+            color: rgba(240, 240, 245, 0.6); text-decoration: none; transition: color 0.3s ease;
+        }
+        .footer-links a:hover { color: var(--stellar-cyan); }
+        .footer-copy { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: rgba(240, 240, 245, 0.3); }
+
+        /* 滚动显示 */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; }
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: rgba(5, 5, 8, 0.98);
+                flex-direction: column;
+                padding: 20px;
+                gap: 16px;
+                transform: translateY(-150%);
+                transition: transform 0.3s ease;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .nav-links.active {
+                transform: translateY(0);
+            }
+            .floating-toc {
+                left: 10px;
+                width: calc(100% - 20px);
+                max-width: 300px;
+            }
+        }
+        @media (max-width: 640px) {
+            .hero-stats { gap: 30px; }
+            .stat-number { font-size: 2rem; }
+            .timeline::before { left: 20px; }
+            .timeline-item:nth-child(odd), .timeline-item:nth-child(even) { justify-content: flex-end; }
+            .timeline-content { width: calc(100% - 50px); margin-left: 40px; }
+            .timeline-dot { left: 20px; }
+            .reader-content { padding: 20px; }
+            .reader-header { padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载动画 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-starfield"></div>
+            <div class="loading-text">
+                <span class="loading-title">Path2AGI</span>
+                <span class="loading-subtitle">正在连接知识星图...</span>
+            </div>
+            <div class="loading-progress">
+                <div class="loading-bar" id="loadingBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="starfield" id="starfield"></div>
+
+    <nav class="navigation">
+        <div class="nav-inner">
+            <div class="logo" onclick="showHome()">Path2AGI</div>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="菜单">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a onclick="scrollToSection('constellation'); closeMobileMenu()">知识星图</a></li>
+                <li><a onclick="scrollToSection('core'); closeMobileMenu()">核心星座</a></li>
+                <li><a onclick="scrollToSection('timeline'); closeMobileMenu()">演进史</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 阅读器 -->
+    <div class="reader-overlay" id="readerOverlay">
+        <div class="reader-header">
+            <button class="toc-show-btn" id="tocShowBtn" onclick="showToc()" title="显示目录" style="display: none;">📑 目录</button>
+            <div class="reader-title" id="readerTitle">文档标题</div>
+            <button class="reader-close" onclick="closeReader()">关闭 ×</button>
+        </div>
+        <div class="reader-content" id="readerScrollArea">
+            <div class="reader-body-wrapper">
+                <div class="markdown-body" id="readerBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 浮动目录 -->
+    <div class="floating-toc" id="floatingToc">
+        <div class="floating-toc-header">
+            <div class="floating-toc-title">📑 目录</div>
+            <button class="toc-collapse-btn" id="tocCollapseBtn" onclick="closeToc()" title="关闭">✕</button>
+        </div>
+        <div id="tocList"></div>
+    </div>
+
+    <div class="universe" id="mainContent">
+        <section class="hero">
+            <div class="hero-badge">从基础学科到通用人工智能</div>
+            <h1>通往 AGI 的<br/>知识星图</h1>
+            <p class="hero-subtitle">29个学科，7大知识领域。这不是一门课程，而是一张指引你穿越人工智能知识宇宙的导航图。</p>
+            <div class="hero-stats">
+                <div class="stat"><span class="stat-number">29</span><span class="stat-label">学科星球</span></div>
+                <div class="stat"><span class="stat-number">7</span><span class="stat-label">知识星座</span></div>
+                <div class="stat"><span class="stat-number">∞</span><span class="stat-label">探索可能</span></div>
+            </div>
+            <div class="scroll-indicator"></div>
+        </section>
+
+        <section class="constellation-section" id="constellation">
+            <div class="section-header reveal">
+                <span class="section-eyebrow">Knowledge Constellation</span>
+                <h2 class="section-title">知识星图</h2>
+                <p class="section-desc">29个学科按照知识属性组成7大星座群，点击卡片开始阅读</p>
+            </div>
+            <!-- 搜索框 -->
+            <div class="search-box reveal" id="searchBox">
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索学科名称..." oninput="filterSubjects(this.value)">
+            </div>
+            <!-- 分类筛选胶囊导航 -->
+            <div class="category-filter reveal" id="categoryFilter">
+                <button class="filter-pill active" data-category="all">全部</button>
+                <button class="filter-pill" data-category="math">数学基础</button>
+                <button class="filter-pill" data-category="computing">计算系统</button>
+                <button class="filter-pill" data-category="cognitive">认知语言</button>
+                <button class="filter-pill" data-category="decision">决策博弈</button>
+                <button class="filter-pill" data-category="physics">物理哲学</button>
+                <button class="filter-pill" data-category="ethics">伦理治理</button>
+                <button class="filter-pill" data-category="social">社会人文</button>
+            </div>
+            <div class="constellation-grid" id="constellationGrid"></div>
+            <!-- 分页控件 -->
+            <div class="pagination" id="pagination"></div>
+            <div class="legend reveal">
+                <div class="legend-item"><div class="legend-dot" style="background: #6366f1;"></div><span>数学与形式基础</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background: #22d3ee;"></div><span>计算与系统工程</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background: #f472b6;"></div><span>认知、生物与语言</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background: #fb923c;"></div><span>决策、交互与社会机制</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background: #a855f7;"></div><span>物理与哲学基础</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div><span>AI伦理与治理</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background: #14b8a6;"></div><span>社会人文科学</span></div>
+            </div>
+        </section>
+
+        <section class="core-section" id="core">
+            <div class="section-header reveal">
+                <span class="section-eyebrow">Core Constellation</span>
+                <h2 class="section-title">核心星座</h2>
+                <p class="section-desc">10个最值得优先学习的核心支点，最快搭建现代AI的知识主梁</p>
+            </div>
+            <div class="core-list" id="coreList"></div>
+        </section>
+
+        <section class="timeline-section" id="timeline">
+            <div class="section-header reveal">
+                <span class="section-eyebrow">Evolution Timeline</span>
+                <h2 class="section-title">AI演进的星历</h2>
+                <p class="section-desc">从1943年到今天，AI作为跨学科汇流系统的历史脉络</p>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1943</div>
+                        <h4 class="timeline-title">McCulloch-Pitts 神经元</h4>
+                        <p class="timeline-desc">神经科学与计算理论首次直接耦合，开启人工神经网络研究</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1948</div>
+                        <h4 class="timeline-title">控制论 & 信息论诞生</h4>
+                        <p class="timeline-desc">Wiener发表控制论，Shannon建立信息论，AI的反馈与信息语言同时成形</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1950</div>
+                        <h4 class="timeline-title">图灵测试</h4>
+                        <p class="timeline-desc">Turing提出图灵测试，把"机器能否表现出智能"变成可讨论问题</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1956</div>
+                        <h4 class="timeline-title">达特茅斯会议</h4>
+                        <p class="timeline-desc">AI作为独立研究方向正式形成</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1986</div>
+                        <h4 class="timeline-title">反向传播复兴连接主义</h4>
+                        <p class="timeline-desc">反向传播算法重新点燃连接主义，优化、数值计算与神经科学重新汇流</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2012</div>
+                        <h4 class="timeline-title">AlexNet突破</h4>
+                        <p class="timeline-desc">借助GPU训练取得突破，数学方法与硬件系统开始大规模合流</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2017</div>
+                        <h4 class="timeline-title">Transformer架构</h4>
+                        <p class="timeline-desc">"Attention is All You Need"，表示学习、语言学、系统工程和规模化训练进一步汇聚</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                <div class="timeline-item reveal">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2022+</div>
+                        <h4 class="timeline-title">大模型与AGI时代</h4>
+                        <p class="timeline-desc">大语言模型、Agent和对齐问题把哲学、经济学、复杂性科学等重新拉回AI中心</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-logo">Path2AGI</div>
+            <p class="footer-desc">从基础学科到通用人工智能 · 跨学科知识图谱</p>
+            <div class="footer-links">
+                <a href="https://github.com/datawhalechina/Path2AGI" target="_blank">GitHub 仓库</a>
+                <a href="https://datawhale.club" target="_blank">Datawhale 社区</a>
+            </div>
+            <p class="footer-copy">本地阅读版 · 基于 Path2AGI 开源项目</p>
+        </footer>
+    </div>
+
+    <script src="path2agi-data.js?v=escape-fix-20260428"></script>
+    <script>
+        // 学科数据
+        const subjects = [
+            { id: 1, name: '概率论与数理统计', category: 'math', number: '01', file: '01-probability-and-statistics.md', desc: '不确定性、统计学习与贝叶斯思维的起点' },
+            { id: 2, name: '线性代数', category: 'math', number: '02', file: '02-linear-algebra.md', desc: '几乎所有现代模型都运行在向量与矩阵上' },
+            { id: 3, name: '微积分与优化理论', category: 'math', number: '03', file: '03-calculus-and-optimization.md', desc: '训练过程本质上是可微优化' },
+            { id: 4, name: '信息论', category: 'math', number: '04', file: '04-information-theory.md', desc: '熵、压缩、互信息与损失函数语言' },
+            { id: 5, name: '逼近论', category: 'math', number: '05', file: '05-approximation-theory.md', desc: '函数逼近与泛化能力的理论基础' },
+            { id: 6, name: '图论', category: 'math', number: '06', file: '06-graph-theory.md', desc: '关系结构与图学习的基础入口' },
+            { id: 7, name: '拓扑与几何', category: 'math', number: '07', file: '07-topology-and-geometry.md', desc: '流形学习与几何深度学习的基础' },
+            { id: 8, name: '逻辑学与形式推理', category: 'math', number: '08', file: '08-logic.md', desc: '符号推理与规则系统的基础' },
+            { id: 9, name: '因果推断', category: 'math', number: '09', file: '09-causal-inference.md', desc: '让模型从相关走向机制' },
+            { id: 10, name: '计算机科学', category: 'computing', number: '10', file: '10-computer-science.md', desc: '算法、复杂度与计算理论' },
+            { id: 11, name: '数值分析', category: 'computing', number: '11', file: '11-numerical-analysis.md', desc: '数值稳定性与计算精度' },
+            { id: 12, name: '信号处理', category: 'computing', number: '12', file: '12-signal-processing.md', desc: '滤波、变换与特征提取' },
+            { id: 13, name: '控制论', category: 'computing', number: '13', file: '13-cybernetics.md', desc: '反馈、闭环和智能体问题的前史' },
+            { id: 14, name: '复杂性科学', category: 'computing', number: '14', file: '14-complexity-science.md', desc: '涌现、自组织与复杂系统' },
+            { id: 15, name: 'AI计算硬件与并行计算', category: 'computing', number: '15', file: '15-computing-hardware-and-parallel-computing.md', desc: '理解为什么现代AI必然是系统工程' },
+            { id: 16, name: '神经科学', category: 'cognitive', number: '16', file: '16-neuroscience.md', desc: '大脑结构与神经计算机制' },
+            { id: 17, name: '认知科学', category: 'cognitive', number: '17', file: '17-cognitive-science.md', desc: '心智、记忆与认知架构' },
+            { id: 18, name: '心理学', category: 'cognitive', number: '18', file: '18-psychology.md', desc: '感知、学习与决策的心理机制' },
+            { id: 19, name: '语言学', category: 'cognitive', number: '19', file: '19-linguistics.md', desc: '语言结构与自然语言处理基础' },
+            { id: 20, name: '进化生物学', category: 'cognitive', number: '20', file: '20-evolutionary-biology.md', desc: '进化算法与适应性系统的灵感来源' },
+            { id: 21, name: '运筹学', category: 'decision', number: '21', file: '21-operations-research.md', desc: '优化决策与资源分配' },
+            { id: 22, name: '博弈论', category: 'decision', number: '22', file: '22-game-theory.md', desc: '多主体互动与策略均衡' },
+            { id: 23, name: '经济学', category: 'decision', number: '23', file: '23-economics.md', desc: '激励机制与市场设计' },
+            { id: 24, name: '统计物理与能量模型', category: 'physics', number: '24', file: '24-statistical-physics.md', desc: '能量景观与统计力学方法' },
+            { id: 25, name: '哲学', category: 'physics', number: '25', file: '25-philosophy.md', desc: '解释"什么算理解、推理、意识与AGI"' },
+            { id: 26, name: 'AI伦理', category: 'ethics', number: '26', file: '26-ai-ethics.md', desc: '价值对齐、公平性与AI治理' },
+            { id: 27, name: '社会学', category: 'social', number: '27', file: '27-sociology.md', desc: '技术社会系统与AI的社会影响' },
+            { id: 28, name: '法律', category: 'social', number: '28', file: '28-law.md', desc: 'AI规制、责任归属与知识产权' },
+            { id: 29, name: '人类学', category: 'social', number: '29', file: '29-anthropology.md', desc: '人类智能的演化与文化维度' },
+        ];
+
+        const categoryNames = {
+            math: '数学基础', computing: '计算系统', cognitive: '认知语言',
+            decision: '决策博弈', physics: '物理哲学', ethics: '伦理治理', social: '社会人文'
+        };
+
+        // 核心学科索引
+        const coreSubjects = [0, 1, 2, 3, 5, 7, 8, 12, 14, 24];
+
+        // 生成星空
+        function createStarfield() {
+            const starfield = document.getElementById('starfield');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.opacity = Math.random() * 0.7 + 0.3;
+                starfield.appendChild(star);
+            }
+        }
+
+        // 分页状态
+        let currentPage = 1;
+        const itemsPerPage = 15; // 3排 x 5列
+        let filteredSubjects = [...subjects];
+
+        // 生成学科卡片（带分页）
+        function createSubjectCards() {
+            renderCards();
+            renderPagination();
+        }
+
+        // 渲染卡片
+        function renderCards() {
+            const grid = document.getElementById('constellationGrid');
+            grid.innerHTML = '';
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageSubjects = filteredSubjects.slice(startIndex, endIndex);
+
+            pageSubjects.forEach((subject, index) => {
+                const card = document.createElement('div');
+                card.className = `subject-card category-${subject.category} reveal`;
+                card.dataset.subjectId = subject.id;
+                card.style.animationDelay = `${index * 0.05}s`;
+                card.innerHTML = `
+                    <div class="subject-number">${subject.number}</div>
+                    <h3 class="subject-name">${subject.name}</h3>
+                    <div class="subject-meta">
+                        <div class="subject-dot"></div>
+                        <span>${categoryNames[subject.category]}</span>
+                    </div>
+                `;
+                card.addEventListener('click', () => openReader(subject));
+                grid.appendChild(card);
+            });
+
+            // 触发reveal动画
+            setTimeout(() => {
+                document.querySelectorAll('.subject-card').forEach(card => {
+                    card.classList.add('active');
+                });
+            }, 50);
+        }
+
+        // 渲染分页控件
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredSubjects.length / itemsPerPage);
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+
+            // 上一页按钮
+            html += `<button class="page-btn prev ${currentPage === 1 ? 'disabled' : ''}" onclick="goToPage(${currentPage - 1})">← 上一页</button>`;
+
+            // 页码按钮
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<button class="page-btn" onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += `<span class="page-info">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="page-info">...</span>`;
+                }
+                html += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+
+            // 下一页按钮
+            html += `<button class="page-btn next ${currentPage === totalPages ? 'disabled' : ''}" onclick="goToPage(${currentPage + 1})">下一页 →</button>`;
+
+            // 页码信息
+            html += `<span class="page-info">${currentPage} / ${totalPages}</span>`;
+
+            pagination.innerHTML = html;
+        }
+
+        // 跳转到指定页
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredSubjects.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+
+            currentPage = page;
+            renderCards();
+            renderPagination();
+
+            // 滚动到网格顶部
+            document.getElementById('constellation').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 生成核心列表
+        function createCoreList() {
+            const list = document.getElementById('coreList');
+            coreSubjects.forEach((idx, i) => {
+                const subject = subjects[idx];
+                const item = document.createElement('div');
+                item.className = 'core-item reveal';
+                item.innerHTML = `
+                    <div class="core-number">${String(i + 1).padStart(2, '0')}</div>
+                    <div class="core-content">
+                        <h3>${subject.name}</h3>
+                        <p>${subject.desc}</p>
+                        <span class="core-tag">${categoryNames[subject.category]}</span>
+                    </div>
+                `;
+                item.addEventListener('click', () => openReader(subject));
+                list.appendChild(item);
+            });
+        }
+
+        // 初始化分类筛选
+        function initCategoryFilter() {
+            const filter = document.getElementById('categoryFilter');
+            const pills = filter.querySelectorAll('.filter-pill');
+            
+            pills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    // 更新按钮状态
+                    pills.forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    
+                    // 清空搜索框
+                    document.getElementById('searchInput').value = '';
+                    
+                    // 筛选数据
+                    const category = pill.dataset.category;
+                    if (category === 'all') {
+                        filteredSubjects = [...subjects];
+                    } else {
+                        filteredSubjects = subjects.filter(s => s.category === category);
+                    }
+                    
+                    // 重置到第一页
+                    currentPage = 1;
+                    renderCards();
+                    renderPagination();
+                });
+            });
+        }
+
+        // 移动端菜单控制
+        function toggleMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+        function closeMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.remove('active');
+        }
+
+        // 搜索筛选学科
+        function filterSubjects(keyword) {
+            const searchTerm = keyword.toLowerCase().trim();
+            
+            // 重置分类筛选按钮状态
+            const pills = document.querySelectorAll('.filter-pill');
+            pills.forEach(p => p.classList.remove('active'));
+            document.querySelector('.filter-pill[data-category="all"]').classList.add('active');
+            
+            if (searchTerm === '') {
+                filteredSubjects = [...subjects];
+            } else {
+                filteredSubjects = subjects.filter(s => 
+                    s.name.toLowerCase().includes(searchTerm) || 
+                    s.number.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // 重置到第一页
+            currentPage = 1;
+            renderCards();
+            renderPagination();
+        }
+
+        // Markdown 解析器
+        function parseMarkdown(md) {
+            // 解析 frontmatter
+            let frontmatter = {};
+            let content = md;
+            const fmMatch = md.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+            if (fmMatch) {
+                const fmText = fmMatch[1];
+                content = fmMatch[2];
+                fmText.split('\n').forEach(line => {
+                    const match = line.match(/^([\w-]+):\s*(.*)$/);
+                    if (match) {
+                        let val = match[2].trim();
+                        if (val.startsWith("'") && val.endsWith("'")) val = val.slice(1, -1);
+                        if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+                        frontmatter[match[1]] = val;
+                    }
+                });
+            }
+
+            // 渲染 frontmatter
+            let html = '';
+            if (Object.keys(frontmatter).length > 0) {
+                html += '<div class="frontmatter">';
+                Object.entries(frontmatter).forEach(([key, val]) => {
+                    html += `<div class="frontmatter-item"><span class="frontmatter-key">${key}:</span><span class="frontmatter-value">${val}</span></div>`;
+                });
+                html += '</div>';
+            }
+
+            // 解析 Markdown
+            let text = content;
+
+            // 代码块
+            text = text.replace(/```([\w]*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // 标题（支持 {#id} 锚点）
+            text = text.replace(/^###### (.*?)\s*(?:\{#([^}]+)\})?$/gim, (m, t, id) => id ? `<h6 id="${id}">${t.trim()}</h6>` : `<h6>${t.trim()}</h6>`);
+            text = text.replace(/^##### (.*?)\s*(?:\{#([^}]+)\})?$/gim, (m, t, id) => id ? `<h5 id="${id}">${t.trim()}</h5>` : `<h5>${t.trim()}</h5>`);
+            text = text.replace(/^#### (.*?)\s*(?:\{#([^}]+)\})?$/gim, (m, t, id) => id ? `<h4 id="${id}">${t.trim()}</h4>` : `<h4>${t.trim()}</h4>`);
+            text = text.replace(/^### (.*?)\s*(?:\{#([^}]+)\})?$/gim, (m, t, id) => id ? `<h3 id="${id}">${t.trim()}</h3>` : `<h3>${t.trim()}</h3>`);
+            text = text.replace(/^## (.*?)\s*(?:\{#([^}]+)\})?$/gim, (m, t, id) => id ? `<h2 id="${id}">${t.trim()}</h2>` : `<h2>${t.trim()}</h2>`);
+            text = text.replace(/^# (.*?)\s*(?:\{#([^}]+)\})?$/gim, (m, t, id) => id ? `<h1 id="${id}">${t.trim()}</h1>` : `<h1>${t.trim()}</h1>`);
+
+            // 粗体和斜体
+            text = text.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+            // 引用
+            text = text.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+
+            // 链接 [[file|text]] 或 [[file]]
+            text = text.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '<a href="#" onclick="openFileByName(\'$1\'); return false;">$2</a>');
+            text = text.replace(/\[\[([^\]]+)\]\]/g, '<a href="#" onclick="openFileByName(\'$1\'); return false;">$1</a>');
+
+            // 普通链接
+            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+            // 图片
+            text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="Path2AGI/$2" onerror="this.style.display=\'none\'">');
+
+            // 无序列表
+            text = text.replace(/^\- (.*$)/gim, '<li>$1</li>');
+            text = text.replace(/(<li>.*<\/li>\n)+/g, '<ul>$&</ul>');
+            text = text.replace(/<\/ul>\n<ul>/g, '');
+
+            // 有序列表
+            text = text.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+
+            // 分隔线
+            text = text.replace(/^---$/gim, '<hr>');
+
+            // 段落
+            text = text.replace(/\n\n/g, '</p><p>');
+            text = '<p>' + text + '</p>';
+            text = text.replace(/<p><(h[1-6]|ul|ol|pre|blockquote|hr|div)/g, '<$1');
+            text = text.replace(/<\/(h[1-6]|ul|ol|pre|blockquote|hr|div)><\/p>/g, '</$1>');
+            text = text.replace(/<p><\/p>/g, '');
+
+            return html + text;
+        }
+
+        // 通过名称打开文件
+        function openFileByName(name) {
+            // 尝试匹配文件名
+            const subject = subjects.find(s =>
+                s.file.includes(name) ||
+                s.name.includes(name) ||
+                name.includes(s.number)
+            );
+            if (subject) {
+                openReader(subject);
+            }
+        }
+
+        // 提取目录
+        function extractToc(md) {
+            const toc = [];
+            // 跳过 frontmatter
+            let content = md;
+            const fmMatch = md.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+            if (fmMatch) content = fmMatch[2];
+
+            const lines = content.split(/\r?\n/);
+            lines.forEach(line => {
+                const match = line.match(/^(#{1,3})\s+(.+)$/);
+                if (match) {
+                    const level = match[1].length;
+                    let text = match[2].trim();
+                    // 移除 markdown 格式
+                    text = text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
+                    toc.push({ level, text });
+                }
+            });
+            return toc;
+        }
+
+        // 生成目录 HTML - 树形结构可折叠
+        function renderToc(toc) {
+            const container = document.getElementById('tocList');
+            const floatingToc = document.getElementById('floatingToc');
+            if (toc.length === 0) {
+                container.innerHTML = '<p style="color: rgba(240,240,245,0.3); font-size: 0.8rem;">暂无目录</p>';
+                floatingToc.classList.remove('visible');
+                return;
+            }
+
+            // 构建树形结构
+            const root = { children: [], level: 0 };
+            const stack = [root];
+
+            toc.forEach((item, i) => {
+                const node = { ...item, index: i, children: [] };
+                while (stack.length > 1 && stack[stack.length - 1].level >= item.level) {
+                    stack.pop();
+                }
+                stack[stack.length - 1].children.push(node);
+                stack.push(node);
+            });
+
+            // 递归渲染
+            function renderNode(node, isRoot = false) {
+                if (isRoot) {
+                    return node.children.map((child, idx) => renderNode(child)).join('');
+                }
+
+                const hasChildren = node.children && node.children.length > 0;
+                const isH1 = node.level === 1;
+
+                let html = `<div class="toc-item toc-h${node.level}" data-index="${node.index}">`;
+
+                // 头部（可点击跳转）
+                html += `<div class="toc-header" onclick="scrollToHeading(${node.index})">`;
+
+                // 展开按钮（只对 h1 或 h2 且有子项的显示）
+                if (hasChildren && node.level <= 2) {
+                    html += `<span class="toc-toggle" onclick="event.stopPropagation(); toggleToc(${node.index})">▶</span>`;
+                } else {
+                    html += `<span class="toc-toggle" style="visibility: hidden;">▶</span>`;
+                }
+
+                html += `<span class="toc-text">${node.text}</span>`;
+                html += `</div>`;
+
+                // 子目录 - H1 默认展开
+                if (hasChildren) {
+                    const isExpanded = node.level === 1;
+                    html += `<div class="toc-children ${isExpanded ? 'expanded' : ''}" id="toc-children-${node.index}">`;
+                    node.children.forEach(child => {
+                        html += renderNode(child);
+                    });
+                    html += `</div>`;
+                }
+
+                html += `</div>`;
+                return html;
+            }
+
+            container.innerHTML = renderNode(root, true);
+
+            // H1 的展开按钮默认旋转
+            document.querySelectorAll('.toc-h1 > .toc-header > .toc-toggle').forEach(toggle => {
+                toggle.classList.add('expanded');
+            });
+
+            floatingToc.classList.add('visible');
+        }
+
+        // 切换目录展开/折叠
+        function toggleToc(index) {
+            const children = document.getElementById(`toc-children-${index}`);
+            const toggle = document.querySelector(`.toc-item[data-index="${index}"] .toc-toggle`);
+            if (children) {
+                children.classList.toggle('expanded');
+                toggle.classList.toggle('expanded');
+            }
+        }
+
+        // 关闭目录（完全隐藏）
+        function closeToc() {
+            const toc = document.getElementById('floatingToc');
+            const showBtn = document.getElementById('tocShowBtn');
+            toc.classList.add('hidden');
+            showBtn.style.display = 'inline-block';
+        }
+
+        // 显示目录
+        function showToc() {
+            const toc = document.getElementById('floatingToc');
+            const showBtn = document.getElementById('tocShowBtn');
+            toc.classList.remove('hidden');
+            showBtn.style.display = 'none';
+        }
+
+        // 跳转到标题
+        function scrollToHeading(index) {
+            const heading = document.getElementById('heading-' + index);
+            if (heading) {
+                heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // 更新目录高亮并自动展开父级
+        function updateTocHighlight() {
+            const headings = document.querySelectorAll('.markdown-body [id^="heading-"]');
+            let current = -1;
+
+            headings.forEach((h, i) => {
+                if (h.getBoundingClientRect().top <= 180) current = i;
+            });
+
+            // 更新高亮
+            document.querySelectorAll('.toc-item').forEach(item => {
+                const idx = parseInt(item.dataset.index);
+                const isActive = idx === current;
+                item.classList.toggle('active', isActive);
+            });
+
+            // 自动展开当前高亮项的父级
+            if (current >= 0) {
+                const activeItem = document.querySelector(`.toc-item[data-index="${current}"]`);
+                if (activeItem) {
+                    // 向上查找父级的 toc-children 并展开
+                    let parent = activeItem.parentElement;
+                    while (parent) {
+                        if (parent.classList.contains('toc-children')) {
+                            parent.classList.add('expanded');
+                            // 同时旋转对应的 toggle 按钮
+                            const parentIndex = parent.id.replace('toc-children-', '');
+                            const toggle = document.querySelector(`.toc-item[data-index="${parentIndex}"] > .toc-header > .toc-toggle`);
+                            if (toggle) toggle.classList.add('expanded');
+                        }
+                        parent = parent.parentElement;
+                    }
+                }
+            }
+        }
+
+        // 打开阅读器
+        function openReader(subject) {
+            const overlay = document.getElementById('readerOverlay');
+            const title = document.getElementById('readerTitle');
+            const body = document.getElementById('readerBody');
+            const scrollArea = document.getElementById('readerScrollArea');
+            const floatingToc = document.getElementById('floatingToc');
+            const tocShowBtn = document.getElementById('tocShowBtn');
+
+            title.textContent = `${subject.number} · ${subject.name}`;
+            body.innerHTML = '<p style="text-align: center; color: rgba(240,240,245,0.5);">正在加载文档...</p>';
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // 重置目录状态
+            floatingToc.classList.remove('hidden');
+            tocShowBtn.style.display = 'none';
+
+            try {
+                const md = window.PATH2AGI_DATA[subject.file];
+                if (!md) throw new Error('文档未找到');
+
+                // 提取目录
+                const toc = extractToc(md);
+                renderToc(toc);
+
+                // 渲染内容（给标题加 id）
+                let headingIndex = 0;
+                let processedMd = md.replace(/^(#{1,3})\s+(.+?)$/gm, (match, hashes, text) => {
+                    const id = `heading-${headingIndex++}`;
+                    return `${hashes} ${text} {#${id}}`;
+                });
+
+            body.innerHTML = parseMarkdown(processedMd);
+
+            // 触发 MathJax 渲染数学公式
+            if (window.MathJax) {
+                MathJax.typesetPromise([body]).catch((err) => {
+                    console.log('MathJax error:', err);
+                });
+            }
+
+            // 滚动到顶部
+            scrollArea.scrollTop = 0;
+
+            // 监听滚动更新目录高亮
+            scrollArea.onscroll = updateTocHighlight;
+                setTimeout(updateTocHighlight, 200);
+
+            } catch (err) {
+                body.innerHTML = `<p style="color: #f472b6;">无法加载文档: ${err.message}</p>`;
+                floatingToc.classList.remove('visible');
+            }
+        }
+
+        // 关闭阅读器
+        function closeReader() {
+            const overlay = document.getElementById('readerOverlay');
+            const floatingToc = document.getElementById('floatingToc');
+            overlay.classList.remove('active');
+            floatingToc.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+
+        // 显示首页
+        function showHome() {
+            closeReader();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 滚动到章节
+        function scrollToSection(id) {
+            closeReader();
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 滚动显示动画
+        function setupScrollReveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('active');
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+            reveals.forEach(el => observer.observe(el));
+        }
+
+        // 视差星空
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            document.getElementById('starfield').style.transform = `translateY(${scrolled * 0.3}px)`;
+        });
+
+        // ESC 关闭阅读器
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeReader();
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 生成加载动画的星星
+            const loadingStarfield = document.querySelector('.loading-starfield');
+            for (let i = 0; i < 30; i++) {
+                const star = document.createElement('div');
+                star.className = 'loading-star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 1.5 + 's';
+                loadingStarfield.appendChild(star);
+            }
+
+            // 模拟加载进度
+            const loadingBar = document.getElementById('loadingBar');
+            let progress = 0;
+            const loadInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(loadInterval);
+                    
+                    // 初始化页面
+                    createStarfield();
+                    createSubjectCards();
+                    createCoreList();
+                    initCategoryFilter();
+                    setupScrollReveal();
+                    
+                    // 隐藏加载动画
+                    setTimeout(() => {
+                        document.getElementById('loadingScreen').classList.add('hidden');
+                    }, 300);
+                }
+                loadingBar.style.width = progress + '%';
+            }, 80);
+        });
+
+        // 注册 PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript,' + encodeURIComponent(`
+                self.addEventListener('install', e => {
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', e => {
+                    e.waitUntil(self.clients.claim());
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(fetch(e.request).catch(() => new Response('Offline')));
+                });
+            `)).catch(() => {
+                // PWA registration failed, but page still works
+            });
+        }
+    </script>
+</body>
+</html>

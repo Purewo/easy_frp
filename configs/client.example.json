@@ -1,0 +1,37 @@
+{
+  "server": {
+    "baseURL": "http://127.0.0.1:8080",
+    "frpsHost": "127.0.0.1",
+    "frpsPort": 7000
+  },
+  "group": {
+    "groupId": "",
+    "deviceId": "",
+    "deviceToken": "",
+    "secretKey": ""
+  },
+  "frpc": {
+    "path": "frpc.exe",
+    "workDir": ".\\data\\frpc",
+    "adminAddr": "127.0.0.1",
+    "adminPort": 7400,
+    "adminUser": "admin",
+    "adminPassword": ""
+  },
+  "exposures": {},
+  "accessRoutes": {},
+  "nodes": {
+    "default": {
+      "id": "default",
+      "name": "Default frps",
+      "serverAddr": "149.118.158.112",
+      "frpsPort": 7000,
+      "authMethod": "token",
+      "authToken": "",
+      "webBaseDomain": "ma1.gameuniverse.top",
+      "webScheme": "https",
+      "vhostHTTPPort": 8080
+    }
+  },
+  "portRules": {}
+}

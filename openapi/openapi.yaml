@@ -1,0 +1,872 @@
+openapi: 3.1.0
+info:
+  title: frp UI Backend API
+  version: 0.1.0
+servers:
+  - url: http://127.0.0.1:8080
+    description: Public control server
+  - url: http://127.0.0.1:7410
+    description: Windows local client backend
+paths:
+  /v1/groups:
+    post:
+      operationId: createGroup
+      tags: [control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '201':
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+  /v1/groups/{groupId}/join:
+    post:
+      operationId: joinGroup
+      tags: [control]
+      parameters:
+        - $ref: '#/components/parameters/groupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinGroupRequest'
+      responses:
+        '200':
+          description: Device token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinGroupResponse'
+  /v1/nodes:
+    get:
+      operationId: listNodes
+      tags: [control]
+      responses:
+        '200':
+          description: Nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Node'
+    post:
+      operationId: createNode
+      tags: [control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNodeRequest'
+      responses:
+        '201':
+          description: Node created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+  /v1/nodes/{nodeId}:
+    delete:
+      operationId: deleteNode
+      tags: [control]
+      parameters:
+        - $ref: '#/components/parameters/nodeId'
+      responses:
+        '204':
+          description: Node deleted
+  /v1/exposures:
+    get:
+      operationId: listExposures
+      tags: [control]
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exposures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exposure'
+  /v1/exposures/private:
+    post:
+      operationId: createPrivateExposure
+      tags: [control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePrivateExposureRequest'
+      responses:
+        '201':
+          description: Private exposure created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exposure'
+  /v1/exposures/public:
+    post:
+      operationId: createPublicExposure
+      tags: [control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePublicExposureRequest'
+      responses:
+        '201':
+          description: Public exposure created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exposure'
+  /v1/exposures/{exposureId}:
+    patch:
+      operationId: updateExposure
+      tags: [control]
+      parameters:
+        - $ref: '#/components/parameters/exposureId'
+        - $ref: '#/components/parameters/xGroupId'
+        - $ref: '#/components/parameters/xDeviceId'
+        - $ref: '#/components/parameters/authorization'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExposureRequest'
+      responses:
+        '200':
+          description: Exposure updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exposure'
+    delete:
+      operationId: deleteExposure
+      tags: [control]
+      parameters:
+        - $ref: '#/components/parameters/exposureId'
+        - $ref: '#/components/parameters/xGroupId'
+        - $ref: '#/components/parameters/xDeviceId'
+        - $ref: '#/components/parameters/authorization'
+      responses:
+        '204':
+          description: Exposure deleted
+  /v1/access-routes:
+    post:
+      operationId: createAccessRoute
+      tags: [control]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccessRouteRequest'
+      responses:
+        '201':
+          description: Access route created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRoute'
+  /internal/frps/plugin:
+    post:
+      operationId: frpsPlugin
+      tags: [control-internal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: frps plugin decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginDecision'
+  /v1/ports:
+    get:
+      operationId: listPortRules
+      tags: [client-direct]
+      responses:
+        '200':
+          description: TCP/UDP port rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortRule'
+    post:
+      operationId: createPortRule
+      tags: [client-direct]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePortRuleRequest'
+      responses:
+        '201':
+          description: Port rule created and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortRule'
+  /v1/ports/{portId}:
+    put:
+      operationId: updatePortRule
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/portId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePortRuleRequest'
+      responses:
+        '200':
+          description: Port rule updated and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortRule'
+    patch:
+      operationId: patchPortRule
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/portId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchPortRuleRequest'
+      responses:
+        '200':
+          description: Port rule state updated and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortRule'
+    delete:
+      operationId: deletePortRule
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/portId'
+      responses:
+        '204':
+          description: Port rule deleted and applied to frpc
+  /v1/frpc/status:
+    get:
+      operationId: directFrpcStatus
+      tags: [client-direct]
+      responses:
+        '200':
+          description: frpc status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrpcStatus'
+  /v1/frpc/reload:
+    post:
+      operationId: directFrpcReload
+      tags: [client-direct]
+      responses:
+        '200':
+          description: frpc reload result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrpcStatus'
+  /v1/logs:
+    get:
+      operationId: directLogs
+      tags: [client-direct]
+      responses:
+        '200':
+          description: Recent frpc logs
+          content:
+            text/plain:
+              schema:
+                type: string
+  /v1/client/server:
+    post:
+      operationId: configureClientServer
+      tags: [client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigureServerRequest'
+      responses:
+        '200':
+          description: Server saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientState'
+  /v1/client/groups/join:
+    post:
+      operationId: clientJoinGroup
+      tags: [client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientJoinGroupRequest'
+      responses:
+        '200':
+          description: Group joined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientState'
+  /v1/client/exposures:
+    post:
+      operationId: clientCreateExposure
+      tags: [client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreateExposureRequest'
+      responses:
+        '201':
+          description: Exposure created and applied locally
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exposure'
+  /v1/client/exposures/{exposureId}:
+    delete:
+      operationId: clientDeleteExposure
+      tags: [client]
+      parameters:
+        - $ref: '#/components/parameters/exposureId'
+      responses:
+        '204':
+          description: Exposure deleted locally and remotely
+  /v1/client/access-routes:
+    post:
+      operationId: clientCreateAccessRoute
+      tags: [client]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreateAccessRouteRequest'
+      responses:
+        '201':
+          description: Route created and applied locally
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRoute'
+  /v1/client/frpc/status:
+    get:
+      operationId: clientFrpcStatus
+      tags: [client]
+      responses:
+        '200':
+          description: frpc status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrpcStatus'
+  /v1/client/frpc/reload:
+    post:
+      operationId: clientFrpcReload
+      tags: [client]
+      responses:
+        '200':
+          description: frpc reload result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrpcStatus'
+  /v1/client/logs:
+    get:
+      operationId: clientLogs
+      tags: [client]
+      responses:
+        '200':
+          description: Recent frpc logs
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  parameters:
+    groupId:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        type: string
+    nodeId:
+      name: nodeId
+      in: path
+      required: true
+      schema:
+        type: string
+    exposureId:
+      name: exposureId
+      in: path
+      required: true
+      schema:
+        type: string
+    portId:
+      name: portId
+      in: path
+      required: true
+      schema:
+        type: string
+    xGroupId:
+      name: X-Group-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    xDeviceId:
+      name: X-Device-ID
+      in: header
+      required: true
+      schema:
+        type: string
+    authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Bearer device token
+  schemas:
+    CreateGroupRequest:
+      type: object
+      required: [groupId, password]
+      properties:
+        groupId:
+          type: string
+        password:
+          type: string
+          minLength: 8
+    JoinGroupRequest:
+      type: object
+      required: [password, deviceName]
+      properties:
+        password:
+          type: string
+        deviceName:
+          type: string
+    JoinGroupResponse:
+      type: object
+      required: [groupId, deviceId, deviceToken]
+      properties:
+        groupId:
+          type: string
+        deviceId:
+          type: string
+        deviceToken:
+          type: string
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    CreateNodeRequest:
+      type: object
+      required: [name, serverAddr, frpsPort]
+      properties:
+        name:
+          type: string
+        serverAddr:
+          type: string
+        frpsPort:
+          type: integer
+        authToken:
+          type: string
+          description: Optional frps auth token when the public frps requires one.
+        allowPorts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRange'
+        domainSuffixes:
+          type: array
+          items:
+            type: string
+    Node:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        serverAddr:
+          type: string
+        frpsPort:
+          type: integer
+        allowPorts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRange'
+        domainSuffixes:
+          type: array
+          items:
+            type: string
+    PortRange:
+      type: object
+      required: [from, to]
+      properties:
+        from:
+          type: integer
+        to:
+          type: integer
+    NodeView:
+      type: object
+      required: [id, name, serverAddr, frpsPort, authMethod, authTokenSet]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        serverAddr:
+          type: string
+        frpsPort:
+          type: integer
+        authMethod:
+          type: string
+          enum: [token]
+        authTokenSet:
+          type: boolean
+        webBaseDomain:
+          type: string
+        webScheme:
+          type: string
+        vhostHTTPPort:
+          type: integer
+        allowPorts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRange'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PortRule:
+      type: object
+      required: [id, nodeId, name, protocol, localIP, localPort, enabled, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        nodeId:
+          type: string
+        name:
+          type: string
+        protocol:
+          type: string
+          enum: [tcp, udp, http]
+        localIP:
+          type: string
+        localPort:
+          type: integer
+        remotePort:
+          type: integer
+        subdomain:
+          type: string
+        domain:
+          type: string
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreatePortRuleRequest:
+      type: object
+      required: [protocol, localPort]
+      properties:
+        nodeId:
+          type: string
+          default: default
+        name:
+          type: string
+        protocol:
+          type: string
+          enum: [tcp, udp, http]
+        localIP:
+          type: string
+          default: 127.0.0.1
+        localPort:
+          type: integer
+        remotePort:
+          type: integer
+          description: Required for tcp and udp rules. Ignored for http rules.
+        subdomain:
+          type: string
+        domain:
+          type: string
+        enabled:
+          type: boolean
+          default: true
+    UpdatePortRuleRequest:
+      type: object
+      required: [protocol, localPort, enabled]
+      properties:
+        nodeId:
+          type: string
+          default: default
+        name:
+          type: string
+        protocol:
+          type: string
+          enum: [tcp, udp, http]
+        localIP:
+          type: string
+          default: 127.0.0.1
+        localPort:
+          type: integer
+        remotePort:
+          type: integer
+          description: Required for tcp and udp rules. Ignored for http rules.
+        subdomain:
+          type: string
+        domain:
+          type: string
+        enabled:
+          type: boolean
+    PatchPortRuleRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+    DeviceAuth:
+      type: object
+      required: [groupId, deviceId, deviceToken]
+      properties:
+        groupId:
+          type: string
+        deviceId:
+          type: string
+        deviceToken:
+          type: string
+    CreatePrivateExposureRequest:
+      allOf:
+        - $ref: '#/components/schemas/DeviceAuth'
+        - type: object
+          required: [name, localIP, localPort]
+          properties:
+            name:
+              type: string
+            localIP:
+              type: string
+            localPort:
+              type: integer
+    CreatePublicExposureRequest:
+      allOf:
+        - $ref: '#/components/schemas/DeviceAuth'
+        - type: object
+          required: [nodeId, name, protocol, localIP, localPort]
+          properties:
+            nodeId:
+              type: string
+            name:
+              type: string
+            protocol:
+              type: string
+              enum: [tcp, udp, http, https]
+            localIP:
+              type: string
+            localPort:
+              type: integer
+            remotePort:
+              type: integer
+            domain:
+              type: string
+    UpdateExposureRequest:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+    Exposure:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        deviceId:
+          type: string
+        nodeId:
+          type: string
+        name:
+          type: string
+        mode:
+          type: string
+          enum: [private, public]
+        protocol:
+          type: string
+        localIP:
+          type: string
+        localPort:
+          type: integer
+        remotePort:
+          type: integer
+        domain:
+          type: string
+        enabled:
+          type: boolean
+    CreateAccessRouteRequest:
+      allOf:
+        - $ref: '#/components/schemas/DeviceAuth'
+        - type: object
+          required: [exposureId, bindPort]
+          properties:
+            exposureId:
+              type: string
+            bindAddr:
+              type: string
+            bindPort:
+              type: integer
+            fallbackBindPort:
+              type: integer
+    AccessRoute:
+      type: object
+      properties:
+        id:
+          type: string
+        groupId:
+          type: string
+        deviceId:
+          type: string
+        exposureId:
+          type: string
+        bindAddr:
+          type: string
+        bindPort:
+          type: integer
+        fallbackBindPort:
+          type: integer
+    ConfigureServerRequest:
+      type: object
+      required: [baseURL, frpsHost, frpsPort]
+      properties:
+        baseURL:
+          type: string
+        frpsHost:
+          type: string
+        frpsPort:
+          type: integer
+    ClientJoinGroupRequest:
+      type: object
+      required: [groupId, password, deviceName]
+      properties:
+        groupId:
+          type: string
+        password:
+          type: string
+        deviceName:
+          type: string
+    ClientCreateExposureRequest:
+      type: object
+      required: [mode, name, localIP, localPort]
+      properties:
+        mode:
+          type: string
+          enum: [private, public]
+        nodeId:
+          type: string
+        name:
+          type: string
+        protocol:
+          type: string
+          enum: [tcp, udp, http, https]
+        localIP:
+          type: string
+        localPort:
+          type: integer
+        remotePort:
+          type: integer
+        domain:
+          type: string
+    ClientCreateAccessRouteRequest:
+      type: object
+      required: [exposureId, bindPort]
+      properties:
+        exposureId:
+          type: string
+        bindAddr:
+          type: string
+        bindPort:
+          type: integer
+        fallbackBindPort:
+          type: integer
+    ClientState:
+      type: object
+      properties:
+        server:
+          type: object
+        group:
+          type: object
+        frpc:
+          type: object
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeView'
+        portRules:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRule'
+    FrpcStatus:
+      type: object
+      properties:
+        running:
+          type: boolean
+        pid:
+          type: integer
+        configPath:
+          type: string
+        lastError:
+          type: string
+    PluginDecision:
+      type: object
+      required: [reject]
+      properties:
+        reject:
+          type: boolean
+        reject_reason:
+          type: string
+        unchanged:
+          type: boolean

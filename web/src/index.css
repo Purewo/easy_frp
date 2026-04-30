@@ -1,0 +1,370 @@
+:root {
+  --primary: #6366f1;
+  --primary-light: #818cf8;
+  --primary-dark: #4f46e5;
+  --accent-yellow: #fbbf24;
+  --accent-pink: #f472b6;
+  --accent-cyan: #22d3ee;
+  --accent-green: #34d399;
+  --accent-orange: #fb923c;
+  --bg: #fafafa;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Ant Design Overrides for Youthful Style */
+.ant-layout {
+  background: var(--bg) !important;
+}
+
+/* ========== SIDER: DARK ELEGANT ========== */
+.ant-layout-sider {
+  background: #0f172a !important;
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.4);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ant-layout-sider-collapsed {
+  box-shadow: 2px 0 12px rgba(15, 23, 42, 0.3);
+}
+
+.ant-menu-dark {
+  background: transparent !important;
+}
+
+.ant-menu-dark .ant-menu-item,
+.ant-menu-dark .ant-menu-submenu-title {
+  border-radius: 10px;
+  margin: 4px 12px;
+  padding-left: 16px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.ant-menu-dark .ant-menu-item:hover,
+.ant-menu-dark .ant-menu-submenu-title:hover {
+  background: rgba(99, 102, 241, 0.12) !important;
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateX(2px);
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  background: rgba(99, 102, 241, 0.18) !important;
+  color: #818cf8 !important;
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.ant-menu-dark .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: linear-gradient(180deg, #818cf8 0%, #6366f1 100%);
+  border-radius: 0 3px 3px 0;
+}
+
+.ant-menu-dark .ant-menu-item .anticon,
+.ant-menu-dark .ant-menu-submenu-title .anticon {
+  font-size: 16px;
+  margin-right: 10px;
+  opacity: 0.7;
+  transition: opacity 0.25s ease;
+}
+
+.ant-menu-dark .ant-menu-item:hover .anticon,
+.ant-menu-dark .ant-menu-item-selected .anticon {
+  opacity: 1;
+}
+
+/* Sider trigger (collapse button) */
+.ant-layout-sider-trigger {
+  background: #0f172a !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4) !important;
+  transition: all 0.2s ease;
+}
+
+.ant-layout-sider-trigger:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* ========== HEADER ========== */
+.ant-layout-header {
+  background: var(--card-bg) !important;
+  box-shadow: var(--shadow);
+  border-bottom: none;
+}
+
+.ant-layout-content {
+  background: var(--bg) !important;
+}
+
+/* Cards - Youthful Style */
+.ant-card {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow) !important;
+  border: none !important;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  box-shadow: var(--shadow-lg) !important;
+  transform: translateY(-2px);
+}
+
+.ant-card-head {
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+/* Buttons - Pill Style */
+.ant-btn {
+  border-radius: var(--radius-xl) !important;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ant-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+  border: none !important;
+}
+
+.ant-btn-default {
+  border: 2px solid var(--border) !important;
+}
+
+/* Inputs - Rounded */
+.ant-input,
+.ant-input-password,
+.ant-input-number,
+.ant-select-selector {
+  border-radius: var(--radius-md) !important;
+  border: 2px solid var(--border) !important;
+  transition: all 0.3s ease;
+}
+
+.ant-input:hover,
+.ant-input-password:hover,
+.ant-input-number:hover,
+.ant-select-selector:hover {
+  border-color: var(--primary-light) !important;
+}
+
+.ant-input:focus,
+.ant-input-password:focus,
+.ant-input-number:focus,
+.ant-select-focused .ant-select-selector {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Tags - Capsule Style */
+.ant-tag {
+  border-radius: var(--radius-xl) !important;
+  padding: 4px 12px !important;
+  font-weight: 500;
+  border: none !important;
+}
+
+/* Table */
+.ant-table {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%) !important;
+  font-weight: 600;
+}
+
+.ant-table-row {
+  transition: all 0.2s ease;
+}
+
+.ant-table-row:hover {
+  background: rgba(99, 102, 241, 0.05) !important;
+}
+
+/* Modal */
+.ant-modal-content {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.ant-modal-header {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+}
+
+/* Switch */
+.ant-switch {
+  border-radius: var(--radius-xl) !important;
+}
+
+.ant-switch-checked {
+  background: linear-gradient(135deg, var(--accent-green) 0%, #10b981 100%) !important;
+}
+
+/* Radio Button Group */
+.ant-radio-group-solid .ant-radio-button-wrapper {
+  border-radius: var(--radius-md);
+  margin: 0 4px;
+  border: 2px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.ant-radio-group-solid .ant-radio-button-wrapper:first-child {
+  border-radius: var(--radius-md);
+}
+
+.ant-radio-group-solid .ant-radio-button-wrapper:last-child {
+  border-radius: var(--radius-md);
+}
+
+.ant-radio-group-solid .ant-radio-button-wrapper-checked {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Statistics Cards */
+.ant-statistic-title {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ant-statistic-content {
+  font-weight: 700;
+}
+
+/* Page Title */
+h2 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 24px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary-light) 0%, var(--primary) 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ant-card,
+h2 {
+  animation: slideIn 0.4s ease-out;
+}
+
+/* Gradient Text Helper */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Status Colors */
+.status-running {
+  color: var(--accent-green);
+}
+
+.status-stopped {
+  color: #ef4444;
+}
+
+/* Icon Backgrounds */
+.icon-bg {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.icon-bg-primary {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  color: var(--primary);
+}
+
+.icon-bg-success {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+  color: var(--accent-green);
+}
+
+.icon-bg-warning {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+  color: var(--accent-yellow);
+}
+
+.icon-bg-danger {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
+  color: #ef4444;
+}

@@ -1,0 +1,571 @@
+openapi: 3.1.0
+info:
+  title: frp Local Client API
+  version: 0.1.0
+  description: Local backend API for managing frps nodes and exposing TCP/UDP ports and HTTP web services through frpc.
+servers:
+  - url: http://127.0.0.1:7410
+    description: Local client backend
+tags:
+  - name: client-direct
+    description: Direct frpc node and port exposure flow for the frontend
+paths:
+  /v1/nodes:
+    get:
+      operationId: listLocalNodes
+      tags: [client-direct]
+      responses:
+        '200':
+          description: Local frps nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NodeView'
+    post:
+      operationId: createLocalNode
+      tags: [client-direct]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNodeRequest'
+      responses:
+        '201':
+          description: Local frps node created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /v1/nodes/{nodeId}:
+    put:
+      operationId: updateLocalNode
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/nodeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNodeRequest'
+      responses:
+        '200':
+          description: Local frps node updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeView'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+    delete:
+      operationId: deleteLocalNode
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/nodeId'
+      responses:
+        '204':
+          description: Local frps node deleted
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /v1/nodes/{nodeId}/doctor:
+    post:
+      operationId: doctorLocalNode
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/nodeId'
+      responses:
+        '200':
+          description: Local frps node diagnostic result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeDoctorResult'
+        '404':
+          $ref: '#/components/responses/Error'
+  /v1/ports:
+    get:
+      operationId: listPortRules
+      tags: [client-direct]
+      responses:
+        '200':
+          description: TCP/UDP and HTTP web exposure rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortRule'
+    post:
+      operationId: createPortRule
+      tags: [client-direct]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePortRuleRequest'
+      responses:
+        '201':
+          description: Port rule created and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortRule'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /v1/ports/{portId}:
+    put:
+      operationId: updatePortRule
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/portId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePortRuleRequest'
+      responses:
+        '200':
+          description: Port rule updated and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortRule'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+    patch:
+      operationId: patchPortRule
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/portId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchPortRuleRequest'
+      responses:
+        '200':
+          description: Port rule state updated and applied to frpc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortRule'
+        '400':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+    delete:
+      operationId: deletePortRule
+      tags: [client-direct]
+      parameters:
+        - $ref: '#/components/parameters/portId'
+      responses:
+        '204':
+          description: Port rule deleted and applied to frpc
+        '404':
+          $ref: '#/components/responses/Error'
+  /v1/frpc/status:
+    get:
+      operationId: directFrpcStatus
+      tags: [client-direct]
+      responses:
+        '200':
+          description: frpc status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrpcStatus'
+  /v1/frpc/reload:
+    post:
+      operationId: directFrpcReload
+      tags: [client-direct]
+      responses:
+        '200':
+          description: frpc reload result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FrpcStatus'
+        '400':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+  /v1/logs:
+    get:
+      operationId: directLogs
+      tags: [client-direct]
+      responses:
+        '200':
+          description: Recent frpc logs
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  parameters:
+    portId:
+      name: portId
+      in: path
+      required: true
+      schema:
+        type: string
+    nodeId:
+      name: nodeId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    Error:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    PortRange:
+      type: object
+      required: [from, to]
+      properties:
+        from:
+          type: integer
+        to:
+          type: integer
+    NodeView:
+      type: object
+      required: [id, name, serverAddr, frpsPort, authMethod, authTokenSet]
+      properties:
+        id:
+          type: string
+          example: default
+        name:
+          type: string
+          example: Default frps
+        serverAddr:
+          type: string
+          example: 149.118.158.112
+        frpsPort:
+          type: integer
+          example: 7000
+        authMethod:
+          type: string
+          enum: [token]
+        authTokenSet:
+          type: boolean
+        webBaseDomain:
+          type: string
+          example: ma1.gameuniverse.top
+        webScheme:
+          type: string
+          example: https
+        vhostHTTPPort:
+          type: integer
+          example: 8080
+        allowPorts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRange'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateNodeRequest:
+      type: object
+      required: [serverAddr]
+      properties:
+        id:
+          type: string
+          description: Optional stable node id. If omitted, the backend derives one from name or generates one.
+          example: backup
+        name:
+          type: string
+          example: Backup frps
+        serverAddr:
+          type: string
+          description: frps host or IP without scheme, path, or port.
+          example: 149.118.158.112
+        frpsPort:
+          type: integer
+          default: 7000
+          minimum: 1
+          maximum: 65535
+        authMethod:
+          type: string
+          enum: [token]
+          default: token
+        authToken:
+          type: string
+          description: Stored locally and never returned by API responses.
+        webBaseDomain:
+          type: string
+          description: Optional wildcard HTTPS base domain for http rules, for example ma1.gameuniverse.top.
+          example: ma1.gameuniverse.top
+        webScheme:
+          type: string
+          enum: [http, https]
+          default: https
+        vhostHTTPPort:
+          type: integer
+          default: 8080
+          minimum: 1
+          maximum: 65535
+        allowPorts:
+          type: array
+          description: Optional allow-list for TCP/UDP remote ports on this node.
+          items:
+            $ref: '#/components/schemas/PortRange'
+    UpdateNodeRequest:
+      type: object
+      required: [name, serverAddr, frpsPort, authMethod, webScheme]
+      properties:
+        name:
+          type: string
+        serverAddr:
+          type: string
+        frpsPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        authMethod:
+          type: string
+          enum: [token]
+        authToken:
+          type: string
+          description: Optional replacement token. Omit to keep the existing token.
+        clearAuthToken:
+          type: boolean
+          default: false
+          description: Set true to remove the stored token.
+        webBaseDomain:
+          type: string
+        webScheme:
+          type: string
+          enum: [http, https]
+        vhostHTTPPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        allowPorts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortRange'
+    NodeDoctorResult:
+      type: object
+      required: [node, overall, checks]
+      properties:
+        node:
+          $ref: '#/components/schemas/NodeView'
+        overall:
+          type: string
+          enum: [pass, warn, fail]
+        testedDomain:
+          type: string
+          example: doctor-ab12cd34.ma1.gameuniverse.top
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/NodeDoctorCheck'
+    NodeDoctorCheck:
+      type: object
+      required: [id, name, status, message]
+      properties:
+        id:
+          type: string
+          example: frpc-login
+        name:
+          type: string
+          example: frpc 登录验证
+        status:
+          type: string
+          enum: [pass, warn, fail, skipped]
+        message:
+          type: string
+        durationMs:
+          type: integer
+          format: int64
+        details:
+          type: object
+          additionalProperties:
+            type: string
+    PortRule:
+      type: object
+      required: [id, nodeId, name, protocol, localIP, localPort, enabled, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          example: port_0123abcd4567ef89
+        nodeId:
+          type: string
+          example: default
+        name:
+          type: string
+          example: web
+        protocol:
+          type: string
+          enum: [tcp, udp, http]
+        localIP:
+          type: string
+          example: 127.0.0.1
+        localPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          example: 8080
+        remotePort:
+          type: integer
+          minimum: 1024
+          maximum: 65535
+          example: 18080
+        subdomain:
+          type: string
+          example: blog
+        domain:
+          type: string
+          example: blog.ma1.gameuniverse.top
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreatePortRuleRequest:
+      type: object
+      required: [protocol, localPort]
+      properties:
+        nodeId:
+          type: string
+          default: default
+        name:
+          type: string
+        protocol:
+          type: string
+          enum: [tcp, udp, http]
+        localIP:
+          type: string
+          default: 127.0.0.1
+        localPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        remotePort:
+          type: integer
+          minimum: 1024
+          maximum: 65535
+          description: Required for tcp and udp rules. Ignored for http rules.
+        subdomain:
+          type: string
+          description: HTTP subdomain under the node webBaseDomain, for example "blog".
+        domain:
+          type: string
+          description: Full HTTP domain under the node webBaseDomain.
+        enabled:
+          type: boolean
+          default: true
+    UpdatePortRuleRequest:
+      type: object
+      required: [protocol, localPort, enabled]
+      properties:
+        nodeId:
+          type: string
+          default: default
+        name:
+          type: string
+        protocol:
+          type: string
+          enum: [tcp, udp, http]
+        localIP:
+          type: string
+          default: 127.0.0.1
+        localPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        remotePort:
+          type: integer
+          minimum: 1024
+          maximum: 65535
+          description: Required for tcp and udp rules. Ignored for http rules.
+        subdomain:
+          type: string
+        domain:
+          type: string
+        enabled:
+          type: boolean
+    PatchPortRuleRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+    FrpcStatus:
+      type: object
+      required: [running, configPath]
+      properties:
+        running:
+          type: boolean
+          description: True when at least one frpc process is running.
+        pid:
+          type: integer
+          description: Present for single-process status responses. Multi-node mode uses nodes[].pid.
+        configPath:
+          type: string
+          description: Primary config path, kept for backward compatibility.
+        lastError:
+          type: string
+        nodes:
+          type: array
+          description: Per-node frpc process states in direct multi-node mode.
+          items:
+            $ref: '#/components/schemas/FrpcNodeStatus'
+    FrpcNodeStatus:
+      type: object
+      required: [nodeId, running, configPath]
+      properties:
+        nodeId:
+          type: string
+          example: default
+        running:
+          type: boolean
+        pid:
+          type: integer
+        configPath:
+          type: string
+          example: .\data\frpc\frpc.toml
+        logPath:
+          type: string
+          example: .\data\frpc\frpc.log
+        lastError:
+          type: string
