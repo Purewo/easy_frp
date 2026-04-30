@@ -9,6 +9,8 @@ It contains two HTTP services:
 
 Frontend work for the current direct-port UI should use [docs/local-client-api.md](docs/local-client-api.md) and [openapi/local-client.yaml](openapi/local-client.yaml). The older combined API contract remains in [openapi/openapi.yaml](openapi/openapi.yaml) for legacy control-server flows.
 
+Current release: [v0.1.0](docs/releases/v0.1.0.md). The next development milestone is XTCP support; start from [docs/next-xtcp.md](docs/next-xtcp.md).
+
 ## Build
 
 ```powershell

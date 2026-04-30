@@ -180,12 +180,6 @@ export default function ClientExposuresPage() {
   };
 
   const handleToggle = async (rule: PortRule, enabled: boolean) => {
-    const otherActiveNodeIds = new Set(rules.filter((item) => item.enabled && item.id !== rule.id).map((item) => item.nodeId));
-    if (enabled && otherActiveNodeIds.size > 0 && !otherActiveNodeIds.has(rule.nodeId)) {
-      message.warning('当前已有其他 frps 节点的启用规则，请先停用后再切换节点');
-      return;
-    }
-
     try {
       await patchRule.mutateAsync({ portId: rule.id, enabled });
       message.success(enabled ? '规则已启用' : '规则已停用');
